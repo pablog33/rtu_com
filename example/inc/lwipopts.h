@@ -133,28 +133,10 @@
 #define MEM_LIBC_MALLOC                 1
 #define MEMP_MEM_MALLOC                 1
 
-/* Required for malloc/free */
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include "lpc_types.h"
+/* Needed for malloc/free */
 #include "FreeRTOS.h"
+#define malloc pvPortMalloc
+#define free vPortFree
 
-/* Reentrant Free */
-#define mem_free vPortFree
-
-/* Reentrant Malloc */
-#define mem_malloc  pvPortMalloc
-
-/* Reentrant Calloc */
-STATIC INLINE void *pvPortCalloc(size_t nmemb, size_t size)
-{
-	void *x = mem_malloc(nmemb * size);
-	if (x != NULL)
-		memset(x, 0, nmemb * size);
-	return x;
-}
-
-#define mem_calloc pvPortCalloc
 
 #endif /* __LWIPOPTS_H_ */
