@@ -66,6 +66,8 @@ static struct netif lpc_netif;
  * Public types/enumerations/variables
  ****************************************************************************/
 
+uint8_t __attribute__((section ("." "data" ".$" "RamLoc40"))) ucHeap[ configTOTAL_HEAP_SIZE ]; /* GPa 201122 1700 Iss2: agregado de Heap_4.c*/
+
 /*****************************************************************************
  * Private functions
  ****************************************************************************/

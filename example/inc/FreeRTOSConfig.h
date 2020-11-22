@@ -51,7 +51,7 @@ extern int DbgConsole_Printf( const char *fmt_s, ... );
 
 
 #define configSUPPORT_STATIC_ALLOCATION              1
-
+#define configSUPPORT_DYNAMIC_ALLOCATION 			1 /* GPa 201122 1700 heap.4c stackIP */
 #define configUSE_PREEMPTION                         1
 #define configUSE_IDLE_HOOK                          0
 #define configUSE_TICK_HOOK                          0
