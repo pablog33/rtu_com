@@ -227,3 +227,26 @@ int main(void)
 	/* Should never arrive here */
 	return 1;
 }
+
+/*-----------------------------------------------------------*/
+/* GPa 201110 1400 */
+/**
+ * @brief	configASSERT callback function
+ * @param 	ulLine		: line where configASSERT was called
+ * @param 	pcFileName	: file where configASSERT was called
+ */
+
+/* This function must be defined in a C source file, not the FreeRTOSConfig.h header file. */
+void vAssertCalled( const char *pcFile, uint32_t ulLine )
+{
+/* Inside this function, pcFile holds the name of the source file that contains
+the line that detected the error, and ulLine holds the line number in the source
+file. The pcFile and ulLine values can be printed out, or otherwise recorded,
+before the following infinite loop is entered. */
+	printf("[ASSERT] %s: %d \r\n", pcFile, ulLine);
+
+/* Disable interrupts so the tick interrupt stops executing, then sit in a loop
+so execution does not move past the line that failed the assertion. */
+	taskDISABLE_INTERRUPTS();
+	for( ;; );
+}

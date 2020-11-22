@@ -138,9 +138,10 @@ extern int DbgConsole_Printf( const char *fmt_s, ... );
 
 /* Normal assert() semantics without relying on the provision of an assert.h
  * header file. */
-#define configASSERT( x )                                       \
-    if( ( x ) == 0 ) { taskDISABLE_INTERRUPTS(); for( ;; ) {; } \
-    }
+
+extern void vAssertCalled( const char *pcFile, uint32_t ulLine );					/* GPa 201110 1400 - 161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide pg358 */
+#define configASSERT( x ) if( ( x ) == 0 ) vAssertCalled( __FILE__, __LINE__ )		/* GPa 201110 1400 - 161204_Mastering_the_FreeRTOS_Real_Time_Kernel-A_Hands-On_Tutorial_Guide pg358 */
+
 
 /* Map the FreeRTOS printf() to the logging task printf. */
 #define configPRINTF( x )          vLoggingPrintf x
