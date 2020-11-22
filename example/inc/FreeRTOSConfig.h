@@ -28,6 +28,7 @@
 #define FREERTOS_CONFIG_H
 
 #include <chip.h>
+#include "board.h"
 
 /*-----------------------------------------------------------
 * Application specific definitions.
