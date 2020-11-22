@@ -59,7 +59,7 @@ extern int DbgConsole_Printf( const char *fmt_s, ... );
 #define configUSE_DAEMON_TASK_STARTUP_HOOK           0
 #define configCPU_CLOCK_HZ                           ( SystemCoreClock )
 #define configTICK_RATE_HZ                           ( ( TickType_t ) 1000 ) // 1000 ticks per second => 1ms tick rate
-#define configMAX_PRIORITIES                         ( 5 )
+#define configMAX_PRIORITIES                         ( 6 )
 #define configMINIMAL_STACK_SIZE                     ( 256 / sizeof(void *) ) /* Se deben especificar words, no bytes */
 #define configTOTAL_HEAP_SIZE                        ( ( size_t ) ( 40 * 1024 ) )    /* 8 Kbytes. */
 #define configAPPLICATION_ALLOCATED_HEAP             1
@@ -179,37 +179,6 @@ void vMainPostStopProcessing( void );
 #define xPortSysTickHandler           SysTick_Handler
 #define vHardFault_Handler            HardFault_Handler
 
-/* IMPORTANT: This define MUST be commented when used with STM32Cube firmware,
- *            to prevent overwriting SysTick_Handler defined within STM32Cube HAL. */
-/* #define xPortSysTickHandler SysTick_Handler */
 
-/*********************************************
- * FreeRTOS specific demos
- ********************************************/
-
-/* The address of an echo server that will be used by the two demo echo client
- * tasks.
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/TCP_Echo_Clients.html
- * http://www.freertos.org/FreeRTOS-Plus/FreeRTOS_Plus_TCP/UDP_Echo_Clients.html */
-#define configECHO_SERVER_ADDR0       192
-#define configECHO_SERVER_ADDR1       168
-#define configECHO_SERVER_ADDR2       2
-#define configECHO_SERVER_ADDR3       6
-#define configTCP_ECHO_CLIENT_PORT    7
-
-/* Prevent the assembler seeing code it doesn't understand. */
-#ifdef __ICCARM__
-/* Logging task definitions. */
-extern void vMainUARTPrintString( char * pcString );
-void vLoggingPrintf( const char * pcFormat,
-                     ... );
-
-extern int iMainRand32( void );
-
-/* Pseudo random number generator, just used by demos so does not have to be
- * secure.  Do not use the standard C library rand() function as it can cause
- * unexpected behaviour, such as calls to malloc(). */
-#define configRAND32()    iMainRand32()
-#endif
 
 #endif /* FREERTOS_CONFIG_H */
