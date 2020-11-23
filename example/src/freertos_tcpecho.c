@@ -66,7 +66,7 @@ static struct netif lpc_netif;
  * Public types/enumerations/variables
  ****************************************************************************/
 
-uint8_t __attribute__((section ("." "data" ".$" "RamLoc40"))) ucHeap[ configTOTAL_HEAP_SIZE ]; /* GPa 201122 1700 Iss2: agregado de Heap_4.c*/
+uint8_t __attribute__((section ("." "data" ".$" "RamLoc40"))) ucHeap[ configTOTAL_HEAP_SIZE ]; /* GPa 201117 1850 Iss2: agregado de Heap_4.c*/
 
 /*****************************************************************************
  * Private functions
@@ -78,9 +78,11 @@ static void prvSetupHardware(void)
 	/* LED0 is used for the link status, on = PHY cable detected */
 	SystemCoreClockUpdate();
 	Board_Init();
+	dout_init();
 
 	/* Initial LED state is off to show an unconnected cable state */
-	Board_LED_Set(0, false);
+	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, 5, 12); /* LOW */
+	//Board_LED_Set(0, false);
 }
 
 /* Callback for TCPIP thread to indicate TCPIP init is done */
@@ -147,7 +149,8 @@ static void vSetupIFTask(void *pvParameters) {
 		/* Only check for connection state when the PHY status has changed */
 		if (physts & PHY_LINK_CHANGED) {
 			if (physts & PHY_LINK_CONNECTED) {
-				Board_LED_Set(0, true);
+				Chip_GPIO_SetPinOutHigh(LPC_GPIO_PORT, 5, 12);
+				//Board_LED_Set(0, true);
 				prt_ip = 0;
 
 				/* Set interface speed and duplex */
@@ -170,7 +173,8 @@ static void vSetupIFTask(void *pvParameters) {
 										  (void *) &lpc_netif, 1);
 			}
 			else {
-				Board_LED_Set(0, false);
+				//Board_LED_Set(0, false);
+				Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, 5, 12);
 				tcpip_callback_with_block((tcpip_callback_fn) netif_set_link_down,
 										  (void *) &lpc_netif, 1);
 			}
