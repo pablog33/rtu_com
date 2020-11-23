@@ -49,16 +49,17 @@ tcpecho_thread(void *arg)
   conn = netconn_new(NETCONN_TCP);
 
   /* Bind connection to well known port number 7. */
-  netconn_bind(conn, NULL, 7);
+  netconn_bind(conn, NULL, 5020);
 
   /* Tell connection to go into listening mode. */
   netconn_listen(conn);
+  printf("Listening on port 5020 %p\n\r", newconn);
 
   while (1) {
 
     /* Grab new connection. */
     err = netconn_accept(conn, &newconn);
-    /*printf("accepted new connection %p\n", newconn);*/
+   printf("accepted new connection %p\n", newconn);
     /* Process the new connection. */
     if (err == ERR_OK) {
       struct netbuf *buf;
