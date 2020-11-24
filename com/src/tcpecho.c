@@ -59,48 +59,50 @@ tcpecho_thread(void *arg)
   netconn_listen(conn);
   printf("Listening on port 5020 %p\n\r", newconn);
 
-  while (1) {
+  /* Grab new connection. */
+   err = netconn_accept(conn, &newconn);				/* GPa 201124 1440 Quito del lazo infinito */
+  lDebug(Info, "accepted new connection %p\n", newconn);
 
-    /* Grab new connection. */
-    err = netconn_accept(conn, &newconn);
-   printf("accepted new connection %p\n", newconn);
-   lDebug(Info, "pole: command received");
-    /* Process the new connection. */
-    if (err == ERR_OK) {
-      struct netbuf *buf;
-      void *data;
-      u16_t len_recvData;
-      
-      while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
-        /*printf("Recved\n");*/
-        do {
-             netbuf_data(buf, &HMIData, &len_recvData);
-             snprintf(tempBuffer, 6, "%s", HMIData);
-             printf("%s", tempBuffer);
-             printf("%d %s", HMIData.pos, HMIData.cmd);
+  if (err == ERR_OK) {
 
+	  struct netbuf *buf;
+	  void *data;
+	  u16_t len_recvData;
 
-             RTUData.pos = 0xFE;
-             snprintf(RTUData.cmd, 5, "%s", "hola");
+	  while (1) {
 
-             snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
-             err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY); /* GPa 201123 1430 Reemplazo data por tempBuffer */
-             printf("%s", data);
+		/* Process the new connection. */
+
+		  while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
+			/*printf("Recved\n");*/
+			do {
+				 netbuf_data(buf, &HMIData, &len_recvData);
+				 snprintf(tempBuffer, 6, "%s", HMIData);
+				 printf("%s", tempBuffer);
+				 printf("%d %s", HMIData.pos, HMIData.cmd);
 
 
-#if 0
-            if (err != ERR_OK) {
-              printf("tcpecho: netconn_write: error \"%s\"\n", lwip_strerr(err));
-            }
-#endif
-        } while (netbuf_next(buf) >= 0);
-        netbuf_delete(buf);
-      }
-      /*printf("Got EOF, looping\n");*/ 
-      /* Close connection and discard connection identifier. */
-      netconn_close(newconn);
-      netconn_delete(newconn);
-    }
+				 RTUData.pos = 0xFE;
+				 snprintf(RTUData.cmd, 5, "%s", "hola");
+
+				 snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
+				 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY); /* GPa 201123 1430 Reemplazo data por tempBuffer */
+				 printf("%s", data);
+
+
+	#if 0
+				if (err != ERR_OK) {
+				  printf("tcpecho: netconn_write: error \"%s\"\n", lwip_strerr(err));
+				}
+	#endif
+			} while (netbuf_next(buf) >= 0);
+			netbuf_delete(buf);
+		  }
+		  /*printf("Got EOF, looping\n");*/
+		  /* Close connection and discard connection identifier. */
+		  //netconn_close(newconn);
+		  //netconn_delete(newconn);
+		}
   }
 }
 /*-----------------------------------------------------------------------------------*/
