@@ -30,6 +30,7 @@
  *
  */
 #include "tcpecho.h"
+#include "debug.h"
 
 #include "lwip/opt.h"
 
@@ -63,6 +64,7 @@ tcpecho_thread(void *arg)
     /* Grab new connection. */
     err = netconn_accept(conn, &newconn);
    printf("accepted new connection %p\n", newconn);
+   lDebug(Info, "pole: command received");
     /* Process the new connection. */
     if (err == ERR_OK) {
       struct netbuf *buf;

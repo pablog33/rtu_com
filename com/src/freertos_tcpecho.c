@@ -49,6 +49,7 @@
 #include "arch/sys_arch.h"
 #include "lpc_phy.h" /* For the PHY monitor support */
 #include "tcpecho.h"
+#include "debug.h"
 
 /* When building the example to run in FLASH, the number of available
    pbufs and memory size (in lwipopts.h) and the number of descriptors
@@ -220,6 +221,7 @@ void msDelay(uint32_t ms)
 int main(void)
 {
 	prvSetupHardware();
+	debugSetLevel(Info);
 
 	/* Add another thread for initializing physical interface. This
 	   is delayed from the main LWIP initialization. */
