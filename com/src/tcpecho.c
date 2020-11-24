@@ -44,6 +44,9 @@ tcpecho_thread(void *arg)
   struct netconn *conn, *newconn;
   err_t err;
   LWIP_UNUSED_ARG(arg);
+  HMIData_t HMIData;
+  RTUData_t RTUData;
+  char tempBuffer[6];
 
   /* Create a new connection identifier. */
   conn = netconn_new(NETCONN_TCP);
@@ -64,13 +67,25 @@ tcpecho_thread(void *arg)
     if (err == ERR_OK) {
       struct netbuf *buf;
       void *data;
-      u16_t len;
+      u16_t len_recvData;
       
       while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
         /*printf("Recved\n");*/
         do {
-             netbuf_data(buf, &data, &len);
-             err = netconn_write(newconn, data, len, NETCONN_COPY);
+             netbuf_data(buf, &HMIData, &len_recvData);
+             snprintf(tempBuffer, 6, "%s", HMIData);
+             printf("%s", tempBuffer);
+             printf("%d %s", HMIData.pos, HMIData.cmd);
+
+
+             RTUData.pos = 0xFE;
+             snprintf(RTUData.cmd, 5, "%s", "hola");
+
+             snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
+             err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY); /* GPa 201123 1430 Reemplazo data por tempBuffer */
+             printf("%s", data);
+
+
 #if 0
             if (err != ERR_OK) {
               printf("tcpecho: netconn_write: error \"%s\"\n", lwip_strerr(err));

@@ -33,6 +33,24 @@
 #ifndef __TCPECHO_H__
 #define __TCPECHO_H__
 
+#include <stdint.h>
+#include <stdbool.h>
+
 void tcpecho_init(void);
+
+typedef struct
+{
+	uint16_t pos;
+	unsigned char cmd[3];
+}
+HMIData_t;
+
+typedef struct
+{
+	uint16_t pos;
+	unsigned char cmd[5];
+	unsigned char buffer[8];
+}
+RTUData_t;
 
 #endif /* __TCPECHO_H__ */
