@@ -45,9 +45,7 @@ tcpecho_thread(void *arg)
   struct netconn *conn, *newconn;
   err_t err;
   LWIP_UNUSED_ARG(arg);
-  HMIData_t HMIData;
-  RTUData_t RTUData;
-  char tempBuffer[6];
+
 
   /* Create a new connection identifier. */
   conn = netconn_new(NETCONN_TCP);
@@ -68,6 +66,10 @@ tcpecho_thread(void *arg)
 	  struct netbuf *buf;
 	  void *data;
 	  u16_t len_recvData;
+	  HMIData_t HMIData;
+	  RTUData_t RTUData;
+	  char tempBuffer[6];
+	  //datos_t *datos;
 
 	  while (1) {
 
@@ -81,11 +83,9 @@ tcpecho_thread(void *arg)
 		  {
 			lDebug(Debug,"conexion recibida");
 			do {
-				 netbuf_data(buf, &HMIData, &len_recvData);
-				 snprintf(tempBuffer, 6, "%s", HMIData);
-				 printf("%s", tempBuffer);
-				 printf("%d %s", HMIData.pos, HMIData.cmd);
-
+				 netbuf_data(buf, &data, &len_recvData);
+				 snprintf(tempBuffer, 6, "%s", data);
+				 //snprintf(datos, 6, "%s", tempBuffer); produce hard fault snprintf espera siempre char*
 
 				 RTUData.pos = 0xFE;
 				 snprintf(RTUData.cmd, 5, "%s", "hola");
