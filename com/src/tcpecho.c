@@ -64,12 +64,12 @@ tcpecho_thread(void *arg)
   if (err == ERR_OK) {
 
 	  struct netbuf *buf;
-	  void *data;
+	  //void *data;
 	  u16_t len_recvData;
 	  HMIData_t HMIData;
 	  RTUData_t RTUData;
 	  char tempBuffer[6];
-	  //datos_t *datos;
+	  HMIData_t *datos = &HMIData;
 
 	  while (1) {
 
@@ -83,8 +83,12 @@ tcpecho_thread(void *arg)
 		  {
 			lDebug(Debug,"conexion recibida");
 			do {
-				 netbuf_data(buf, &data, &len_recvData);
-				 snprintf(tempBuffer, 6, "%s", data);
+				 netbuf_data(buf, &datos, &len_recvData);
+				 lDebug(Debug, "%s", datos->pos);
+				 lDebug(Debug, "%s", datos->cmd);
+				 lDebug(Debug, "%s", HMIData.pos);
+
+				 //snprintf(tempBuffer, 6, "%s", data);
 				 //snprintf(datos, 6, "%s", tempBuffer); produce hard fault snprintf espera siempre char*
 
 				 RTUData.pos = 0xFE;
