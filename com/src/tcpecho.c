@@ -73,8 +73,13 @@ tcpecho_thread(void *arg)
 
 		/* Process the new connection. */
 
-		  while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
-			/*printf("Recved\n");*/
+		  //buf = netbuf_new(); /* create a new netbuf */
+		  //netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
+		  //lDebug(Debug, "buf creado");
+
+		  while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
+		  {
+			lDebug(Debug,"conexion recibida");
 			do {
 				 netbuf_data(buf, &HMIData, &len_recvData);
 				 snprintf(tempBuffer, 6, "%s", HMIData);
@@ -87,16 +92,13 @@ tcpecho_thread(void *arg)
 
 				 snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
 				 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY); /* GPa 201123 1430 Reemplazo data por tempBuffer */
-				 printf("%s", data);
+				 //printf("%s", data);
 
+				} while (netbuf_next(buf) >= 0);
 
-	#if 0
-				if (err != ERR_OK) {
-				  printf("tcpecho: netconn_write: error \"%s\"\n", lwip_strerr(err));
-				}
-	#endif
-			} while (netbuf_next(buf) >= 0);
-			netbuf_delete(buf);
+			//netbuf_delete(buf);
+			lDebug(Debug, "bufer eliminado");
+
 		  }
 		  /*printf("Got EOF, looping\n");*/
 		  /* Close connection and discard connection identifier. */

@@ -215,13 +215,13 @@ void msDelay(uint32_t ms)
 }
 
 /**
- * @brief	main routine for example_lwip_tcpecho_freertos_18xx43xx
+ * @brief	main routine for example_lwip_tcpec+ho_freertos_18xx43xx
  * @return	Function should not exit
  */
 int main(void)
 {
 	prvSetupHardware();
-	debugSetLevel(Info);
+	debugSetLevel(Debug);
 
 	/* Add another thread for initializing physical interface. This
 	   is delayed from the main LWIP initialization. */
