@@ -38,6 +38,7 @@
 
 #include "lwip/sys.h"
 #include "lwip/api.h"
+#include<string.h>
 /*-----------------------------------------------------------------------------------*/
 static void 
 tcpecho_thread(void *arg)
@@ -64,12 +65,11 @@ tcpecho_thread(void *arg)
   if (err == ERR_OK) {
 
 	  struct netbuf *buf;
-	  //void *data;
 	  u16_t len_recvData;
 	  HMIData_t HMIData;
 	  RTUData_t RTUData;
-	  char tempBuffer[6];
-	  HMIData_t *datos = &HMIData;
+	  HMIData_t *pHMIData;
+	  uint16_t res;
 
 	  while (1) {
 
@@ -83,13 +83,23 @@ tcpecho_thread(void *arg)
 		  {
 			lDebug(Debug,"conexion recibida");
 			do {
-				 netbuf_data(buf, &datos, &len_recvData);
-				 lDebug(Debug, "%s", datos->pos);
-				 lDebug(Debug, "%s", datos->cmd);
-				 lDebug(Debug, "%s", HMIData.pos);
+				 netbuf_data(buf, &pHMIData, &len_recvData);
 
-				 //snprintf(tempBuffer, 6, "%s", data);
-				 //snprintf(datos, 6, "%s", tempBuffer); produce hard fault snprintf espera siempre char*
+				 if (!(res = strncmp(pHMIData->pos, "ho", 2)))
+				 {
+					 lDebug(Debug, "ho");
+				 }
+				 if (!(res = strncmp(pHMIData->cmd, "la", 2)))
+				 {
+					 lDebug(Debug, "la");
+				 }
+
+
+
+
+
+/* ------------------------------------------------------------------------*/
+
 
 				 RTUData.pos = 0xFE;
 				 snprintf(RTUData.cmd, 5, "%s", "hola");

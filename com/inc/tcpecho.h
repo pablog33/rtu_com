@@ -41,7 +41,7 @@ void tcpecho_init(void);
 typedef struct
 {
 	unsigned char pos[2];
-	unsigned char cmd[3];
+	unsigned char cmd[2];
 }
 HMIData_t;
 
