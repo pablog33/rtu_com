@@ -30,8 +30,8 @@
  *
  */
 
-#ifndef __TCPECHO_H__
-#define __TCPECHO_H__
+#ifndef __RTU_COM_HMI_H__
+#define __RTU_COM_HMI_H__
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -53,4 +53,4 @@ typedef struct
 }
 RTUData_t;
 
-#endif /* __TCPECHO_H__ */
+#endif /* __RTU_COM_HMI_H__ */

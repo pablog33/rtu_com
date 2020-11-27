@@ -29,7 +29,7 @@
  * Author: Adam Dunkels <adam@sics.se>
  *
  */
-#include "tcpecho.h"
+#include <rtu_com_hmi.h>
 #include "debug.h"
 
 #include "lwip/opt.h"
@@ -41,7 +41,7 @@
 #include<string.h>
 /*-----------------------------------------------------------------------------------*/
 static void 
-tcpecho_thread(void *arg)
+tcp_thread(void *arg)
 {
   struct netconn *conn, *newconn;
   err_t err;
@@ -123,9 +123,9 @@ tcpecho_thread(void *arg)
 }
 /*-----------------------------------------------------------------------------------*/
 void
-tcpecho_init(void)
+stackIp_init(void)
 {
-  sys_thread_new("tcpecho_thread", tcpecho_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
+  sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
 
