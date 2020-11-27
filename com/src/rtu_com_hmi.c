@@ -46,6 +46,7 @@ tcp_thread(void *arg)
   struct netconn *conn, *newconn;
   err_t err;
   LWIP_UNUSED_ARG(arg);
+  void *unused;
 
 
   /* Create a new connection identifier. */
@@ -58,34 +59,36 @@ tcp_thread(void *arg)
   netconn_listen(conn);
   printf("Listening on port 5020 %p\n\r", newconn);
 
+  while (1)
+  {
 
+	/* Grab new connection. */
+	err = netconn_accept(conn, &newconn);				/* GPa 201124 1440 Quito del lazo infinito */
+	lDebug(Info, "accepted new connection %p\n", newconn);
 
-	  while (1) {
+	if (err == ERR_OK) {
 
-		  /* Grab new connection. */
-		     err = netconn_accept(conn, &newconn);				/* GPa 201124 1440 Quito del lazo infinito */
-		    lDebug(Info, "accepted new connection %p\n", newconn);
+	struct netbuf *buf;
+	u16_t len_recvData;
+	HMIData_t HMIData;
+	RTUData_t RTUData;
+	HMIData_t *pHMIData;
+	uint16_t res;
 
-		    if (err == ERR_OK) {
+	/* Process the new connection. */
 
-		  	  struct netbuf *buf;
-		  	  u16_t len_recvData;
-		  	  HMIData_t HMIData;
-		  	  RTUData_t RTUData;
-		  	  HMIData_t *pHMIData;
-		  	  uint16_t res;
+	  buf = netbuf_new(); /* create a new netbuf */
+	  netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
+	  lDebug(Debug, "buf creado");
 
-		/* Process the new connection. */
+		while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
+		{
 
-		  //buf = netbuf_new(); /* create a new netbuf */
-		  //netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
-		  //lDebug(Debug, "buf creado");
-
-		  while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
-		  {
 			lDebug(Debug,"conexion recibida");
-			do {
-				 netbuf_data(buf, &pHMIData, &len_recvData);
+			do
+			{
+
+				netbuf_data(buf, &pHMIData, &len_recvData);
 
 				 if (!(res = strncmp(pHMIData->pos, "ho", 2)))
 				 {
@@ -96,13 +99,7 @@ tcp_thread(void *arg)
 					 lDebug(Debug, "la");
 				 }
 
-
-
-
-
 /* ------------------------------------------------------------------------*/
-
-
 				 RTUData.pos = 0xFE;
 				 snprintf(RTUData.cmd, 5, "%s", "hola");
 
@@ -110,19 +107,23 @@ tcp_thread(void *arg)
 				 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY); /* GPa 201123 1430 Reemplazo data por tempBuffer */
 				 //printf("%s", data);
 
-				} while (netbuf_next(buf) >= 0);
+			} while (netbuf_next(buf) >= 0);
 
-			//netbuf_delete(buf);
+			netbuf_delete(buf);
 			lDebug(Debug, "bufer eliminado");
 
 		  }
 		  /*printf("Got EOF, looping\n");*/
 		  /* Close connection and discard connection identifier. */
-		  //netconn_close(newconn);
-		  //netconn_delete(newconn);
-		}
-  }
-}
+		  netconn_close(newconn);
+		  netconn_delete(newconn);
+		  //tcp_thread(unused);
+
+		} /*	while	*/
+
+  } /* while(1) */
+
+} /* tcp_thread() */
 /*-----------------------------------------------------------------------------------*/
 void
 stackIp_init(void)
