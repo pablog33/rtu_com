@@ -58,20 +58,22 @@ tcp_thread(void *arg)
   netconn_listen(conn);
   printf("Listening on port 5020 %p\n\r", newconn);
 
-  /* Grab new connection. */
-   err = netconn_accept(conn, &newconn);				/* GPa 201124 1440 Quito del lazo infinito */
-  lDebug(Info, "accepted new connection %p\n", newconn);
 
-  if (err == ERR_OK) {
-
-	  struct netbuf *buf;
-	  u16_t len_recvData;
-	  HMIData_t HMIData;
-	  RTUData_t RTUData;
-	  HMIData_t *pHMIData;
-	  uint16_t res;
 
 	  while (1) {
+
+		  /* Grab new connection. */
+		     err = netconn_accept(conn, &newconn);				/* GPa 201124 1440 Quito del lazo infinito */
+		    lDebug(Info, "accepted new connection %p\n", newconn);
+
+		    if (err == ERR_OK) {
+
+		  	  struct netbuf *buf;
+		  	  u16_t len_recvData;
+		  	  HMIData_t HMIData;
+		  	  RTUData_t RTUData;
+		  	  HMIData_t *pHMIData;
+		  	  uint16_t res;
 
 		/* Process the new connection. */
 
