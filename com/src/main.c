@@ -138,7 +138,7 @@ static void vSetupIFTask(void *pvParameters) {
 #endif
 
 	/* Initialize and start application */
-	stackIp_init();
+	stackIp_ThreadInit();
 
 	/* This loop monitors the PHY link and will handle cable events
 	   via the PHY driver. */

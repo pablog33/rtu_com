@@ -21,6 +21,11 @@ void dout_init()
 
 	Chip_SCU_PinMuxSet( 1, 5, SCU_MODE_FUNC0 );			//DOUT7 P1_5 	PIN48 	GPIO1[8]   	POLE_PULSE
 	Chip_GPIO_SetPinDIROutput(LPC_GPIO_PORT, 1, 8);
+
+	dout_init_cero();
+
+	return;
+
 }
 
 void dout_init_cero()
@@ -29,5 +34,7 @@ void dout_init_cero()
 	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, 5, 12);
 	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, 5, 12);
 	Chip_GPIO_SetPinOutLow(LPC_GPIO_PORT, 5, 12);
+
+	return;
 }
 

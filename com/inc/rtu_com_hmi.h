@@ -37,7 +37,12 @@
 #include <stdbool.h>
 #include "lwip/err.h"
 
-void tcpecho_init(void);
+#define	RCV_TIMEO		100 	/* 	Intrvalo de espera -100ms- entre ciclos de recepcion y transmision
+								 	De no recibir paquetes del HMI pasado este intervalo, se produce
+								 	desconexion de la RTU.
+								 */
+
+void stackIp_ThreadInit(void);
 
 void prvDebugErrorTxRx(err_t err);
 
