@@ -116,7 +116,7 @@ tcp_thread(void *arg)
 
 		  }
 
-		lDebug(Debug, "%s", err);
+		//lDebug(Debug, "%s", err);
 
 		/*printf("Got EOF, looping\n");*/
 		  /* Close connection and discard connection identifier. */
