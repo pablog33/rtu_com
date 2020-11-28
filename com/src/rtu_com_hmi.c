@@ -77,9 +77,6 @@ tcp_thread(void *arg)
 
 	/* Process the new connection. */
 
-	  buf = netbuf_new(); /* create a new netbuf */
-	  netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
-
 	  newconn->recv_timeout = 100;
 
 		while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
