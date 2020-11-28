@@ -35,8 +35,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "lwip/err.h"
 
 void tcpecho_init(void);
+
+void prvDebugErrorTxRx(err_t err);
 
 typedef struct
 {

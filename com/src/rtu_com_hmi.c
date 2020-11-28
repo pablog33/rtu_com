@@ -79,14 +79,12 @@ tcp_thread(void *arg)
 
 	  buf = netbuf_new(); /* create a new netbuf */
 	  netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
-	  lDebug(Debug, "buf creado");
 
 	  newconn->recv_timeout = 100;
 
 		while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
 		{
 
-			lDebug(Debug,"conexion recibida");
 			do
 			{
 
@@ -112,11 +110,14 @@ tcp_thread(void *arg)
 			} while (netbuf_next(buf) >= 0);
 
 			netbuf_delete(buf);
-			lDebug(Debug, "bufer eliminado");
 
 		  }
 
-		//lDebug(Debug, "%s", err);
+		lDebug(Debug, "Desconexion RTU - ");
+
+		lDebug(Debug, "%d", err);
+
+		prvDebugErrorTxRx(err);
 
 		/*printf("Got EOF, looping\n");*/
 		  /* Close connection and discard connection identifier. */
@@ -138,5 +139,21 @@ stackIp_init(void)
   sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
+
+void prvDebugErrorTxRx(err_t err)
+{
+	switch(err)
+	{
+	case(ERR_TIMEOUT):
+		lDebug(Error, "RecvTimeOut - Se detienen procesos!! \n");
+	case(ERR_ARG):
+			lDebug(Error, "Argumento de funcion -netconn_recv- ilegal - Se detienen procesos!! \n");
+	case(ERR_CONN):
+			lDebug(Error, "Problemas de conexion - Se detienen procesos!! \n");
+	case(ERR_CLSD):
+			lDebug(Error, "Closed Connection - Se detienen procesos!! \n");
+	}
+	return;
+}
 
 #endif /* LWIP_NETCONN */
