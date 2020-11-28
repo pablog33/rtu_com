@@ -81,6 +81,8 @@ tcp_thread(void *arg)
 	  netbuf_alloc(buf, 50); /* allocate 100 bytes of buffer */
 	  lDebug(Debug, "buf creado");
 
+	  newconn->recv_timeout = 100;
+
 		while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
 		{
 
@@ -113,13 +115,18 @@ tcp_thread(void *arg)
 			lDebug(Debug, "bufer eliminado");
 
 		  }
-		  /*printf("Got EOF, looping\n");*/
+
+		lDebug(Debug, "%s", err);
+
+		/*printf("Got EOF, looping\n");*/
 		  /* Close connection and discard connection identifier. */
 		  netconn_close(newconn);
 		  netconn_delete(newconn);
 		  //tcp_thread(unused);
 
 		} /*	while	*/
+
+
 
   } /* while(1) */
 
