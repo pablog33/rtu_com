@@ -24,7 +24,7 @@
  * @brief Espera de nueva trama desde HMI dentro de este intrvalo de tiempo.
  * @note Al generarse timeout, se produce la desconexion por parte de la RTU.
  */
-#define	RCV_TIMEO		100
+#define	RCV_TIMEO		10000
 
 /**
  * @def Puerto de conexion del RTU - socket
