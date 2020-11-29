@@ -37,10 +37,18 @@ tcp_thread(void *arg)
 			u16_t len_recvData;
 			HMIData_t *pHMIData;
 			HMICmd_t HMICmd;
-			RTUData_t RTUData;
+			RTUData_t RTUDataTx;
 			uint16_t res;
+			mpapstatus_t ArmStatus;
+			mpapstatus_t PoleStatus;
+			liftstatus_t LiftStatus;
+			uint16_t iServerStatus = 0x00;
 
 			newconn->recv_timeout = RCV_TIMEO;
+
+			arm_init();
+			pole_init();
+			lift_init();
 
 			while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
 			{
@@ -49,71 +57,19 @@ tcp_thread(void *arg)
 					netbuf_data(buf, &pHMIData, &len_recvData);
 
 					NetValuesReceivedFromHMI(pHMIData, &HMICmd);
-
-					//lDebug(Debug, "%d", ppHMIData->posCmdArm);
-
-//					 if (!(res = strncmp(ppHMIData->pos, "ho", 2)))
-//					 {
-//						 lDebug(Debug, "ho");
-//					 }
-//					 if (!(res = strncmp(ppHMIData->cmd, "la", 2)))
-//					 {
-//						 lDebug(Debug, "la");
-//					 }
-
-//					HMICmd.posCmdArm = pHMIData->posCmdArm;
-//					HMICmd.velCmdArm = pHMIData->velCmdArm;
-//					HMICmd.posCmdPole = pHMIData->posCmdPole;
-//					HMICmd.velCmdPole = pHMIData->velCmdPole;
-//
-//
-//					/*		-- HMICmd Frame Parsing --	*/
-//					/*	A partir de los descriptores -*pHMIData- se obtienen los valores para HMICmd contenidos en la trama recibida.
-//					*/
-//
-//					/*	-- mode --	*/
-//					if(!strncmp(pHMIData->mode, "STOP;", HMI_NETVAR_SIZE))	{	HMICmd.mode = eStop;	}
-//					else if (!strncmp(pHMIData->mode, "FRUN;", HMI_NETVAR_SIZE)) {	HMICmd.mode = eFree_run;	}
-//					else if (!strncmp(pHMIData->mode, "AUTO;", HMI_NETVAR_SIZE)) {	HMICmd.mode = eAuto; }
-//					else if (!strncmp(pHMIData->mode, "LIFT;", HMI_NETVAR_SIZE)) { HMICmd.mode = eLift; }
-//					else { lDebug(Error,"error- HMICmd.mode"); }
-//
-//					/*	--	freeRunAxis --	*/
-//					if (!strncmp(pHMIData->freeRunAxis, "ARM_;", HMI_NETVAR_SIZE)) { HMICmd.freeRunAxis = eArm; }
-//					else if (!strncmp(pHMIData->freeRunAxis, "POLE;", HMI_NETVAR_SIZE)) { HMICmd.freeRunAxis = ePole; }
-//					else { lDebug(Error,"error- HMICmd.freeRunAxis"); }
-//
-//					/*	--	freeRunDir --	*/
-//					if (!strncmp(pHMIData->freeRunDir, "CW__;", HMI_NETVAR_SIZE)) { HMICmd.freeRunDir = eCW; }
-//					else if (!strncmp(pHMIData->freeRunDir, "CCW_;", HMI_NETVAR_SIZE)) { HMICmd.freeRunDir = eCCW; }
-//					else { lDebug(Error,"error- HMICmd.freeRunDir"); }
-//
-//					/*	-- ctrlEn --	*/
-//					if (!strncmp(pHMIData->ctrlEn, "CTLE;", HMI_NETVAR_SIZE)) { HMICmd.ctrlEn = eEnable; }
-//					else if (!strncmp(pHMIData->ctrlEn, "DCTL;", HMI_NETVAR_SIZE)) { HMICmd.ctrlEn = eDesable; }
-//					else { lDebug(Error,"error- HMICmd.ctrlEn"); }
-//
-//					/*	-- stallEn --	*/
-//					if (!strncmp(pHMIData->stallEn, "STLE;", HMI_NETVAR_SIZE)) { HMICmd.stallEn = eEnable; }
-//					else if (!strncmp(pHMIData->stallEn, "DSTL;", HMI_NETVAR_SIZE)) { HMICmd.stallEn = eDesable; }
-//					else { lDebug(Error,"error- HMICmd.stallEn"); }
-//
-//					/*	-- liftDir --	*/
-//					if (!strncmp(pHMIData->liftDir, "LFUP;", HMI_NETVAR_SIZE)) { HMICmd.liftDir = eUp; }
-//					else if (!strncmp(pHMIData->liftDir, "LFDW;", HMI_NETVAR_SIZE)) { HMICmd.liftDir = eDown; }
-//					else { lDebug(Error,"error- HMICmd.liftDir"); }
-//
-//					/*	-- clientID --*/
-//					if (!strncmp(pHMIData->clientId, "SM13;", HMI_NETVAR_SIZE)) { HMICmd.clientID = eSigned; }
-//					else { lDebug(Error,"error- HMICmd.ClientID", HMI_NETVAR_SIZE); HMICmd.clientID = eUnsigned; }
-
-
 	/* ------------------------------------------------------------------------*/
-					 RTUData.pos = 0xFE;
-					 snprintf(RTUData.cmd, 5, "%s", "hola");
+//
+					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
 
-					 snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
-					 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY);
+					err = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY);
+
+					lDebug(Debug, "%d", err);
+
+					//RTUData.pos = 0xFE;
+//					 snprintf(RTUData.cmd, 5, "%s", "hola");
+//
+//					 snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
+//					 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY);
 
 
 				} while (netbuf_next(buf) >= 0);
