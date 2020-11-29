@@ -1,34 +1,4 @@
-/*
- * Copyright (c) 2001-2003 Swedish Institute of Computer Science.
- * All rights reserved. 
- * 
- * Redistribution and use in source and binary forms, with or without modification, 
- * are permitted provided that the following conditions are met:
- *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission. 
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT 
- * SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT 
- * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
- * OF SUCH DAMAGE.
- *
- * This file is part of the lwIP TCP/IP stack.
- * 
- * Author: Adam Dunkels <adam@sics.se>
- *
- */
+
 #include <rtu_com_hmi.h>
 #include "debug.h"
 
@@ -65,9 +35,9 @@ tcp_thread(void *arg)
 		{
 			struct netbuf *buf;
 			u16_t len_recvData;
-			HMIData_t HMIData;
-			RTUData_t RTUData;
 			HMIData_t *pHMIData;
+			HMICmd_t HMICmd;
+			RTUData_t RTUData;
 			uint16_t res;
 
 			newconn->recv_timeout = RCV_TIMEO;
@@ -78,14 +48,65 @@ tcp_thread(void *arg)
 				{
 					netbuf_data(buf, &pHMIData, &len_recvData);
 
-					 if (!(res = strncmp(pHMIData->pos, "ho", 2)))
-					 {
-						 lDebug(Debug, "ho");
-					 }
-					 if (!(res = strncmp(pHMIData->cmd, "la", 2)))
-					 {
-						 lDebug(Debug, "la");
-					 }
+					//NetValuesReceivedFromHMI(&ppHMIData, &HMICmd);
+
+					//lDebug(Debug, "%d", ppHMIData->posCmdArm);
+
+//					 if (!(res = strncmp(ppHMIData->pos, "ho", 2)))
+//					 {
+//						 lDebug(Debug, "ho");
+//					 }
+//					 if (!(res = strncmp(ppHMIData->cmd, "la", 2)))
+//					 {
+//						 lDebug(Debug, "la");
+//					 }
+
+					HMICmd.posCmdArm = pHMIData->posCmdArm;
+					HMICmd.velCmdArm = pHMIData->velCmdArm;
+					HMICmd.posCmdPole = pHMIData->posCmdPole;
+					HMICmd.velCmdPole = pHMIData->velCmdPole;
+
+
+					/*		-- HMICmd Frame Parsing --	*/
+					/*	A partir de los descriptores -*pHMIData- se obtienen los valores para HMICmd contenidos en la trama recibida.
+					*/
+
+					/*	-- mode --	*/
+					if(!strncmp(pHMIData->mode, "STOP;", HMI_NETVAR_SIZE))	{	HMICmd.mode = eStop;	}
+					else if (!strncmp(pHMIData->mode, "FRUN;", HMI_NETVAR_SIZE)) {	HMICmd.mode = eFree_run;	}
+					else if (!strncmp(pHMIData->mode, "AUTO;", HMI_NETVAR_SIZE)) {	HMICmd.mode = eAuto; }
+					else if (!strncmp(pHMIData->mode, "LIFT;", HMI_NETVAR_SIZE)) { HMICmd.mode = eLift; }
+					else { lDebug(Error,"error- HMICmd.mode"); }
+
+					/*	--	freeRunAxis --	*/
+					if (!strncmp(pHMIData->freeRunAxis, "ARM_;", HMI_NETVAR_SIZE)) { HMICmd.freeRunAxis = eArm; }
+					else if (!strncmp(pHMIData->freeRunAxis, "POLE;", HMI_NETVAR_SIZE)) { HMICmd.freeRunAxis = ePole; }
+					else { lDebug(Error,"error- HMICmd.freeRunAxis"); }
+
+					/*	--	freeRunDir --	*/
+					if (!strncmp(pHMIData->freeRunDir, "CW__;", HMI_NETVAR_SIZE)) { HMICmd.freeRunDir = eCW; }
+					else if (!strncmp(pHMIData->freeRunDir, "CCW_;", HMI_NETVAR_SIZE)) { HMICmd.freeRunDir = eCCW; }
+					else { lDebug(Error,"error- HMICmd.freeRunDir"); }
+
+					/*	-- ctrlEn --	*/
+					if (!strncmp(pHMIData->ctrlEn, "CTLE;", HMI_NETVAR_SIZE)) { HMICmd.ctrlEn = eEnable; }
+					else if (!strncmp(pHMIData->ctrlEn, "DCTL;", HMI_NETVAR_SIZE)) { HMICmd.ctrlEn = eDesable; }
+					else { lDebug(Error,"error- HMICmd.ctrlEn"); }
+
+					/*	-- stallEn --	*/
+					if (!strncmp(pHMIData->stallEn, "STLE;", HMI_NETVAR_SIZE)) { HMICmd.stallEn = eEnable; }
+					else if (!strncmp(pHMIData->stallEn, "DSTL;", HMI_NETVAR_SIZE)) { HMICmd.stallEn = eDesable; }
+					else { lDebug(Error,"error- HMICmd.stallEn"); }
+
+					/*	-- liftDir --	*/
+					if (!strncmp(pHMIData->liftDir, "LFUP;", HMI_NETVAR_SIZE)) { HMICmd.liftDir = eUp; }
+					else if (!strncmp(pHMIData->liftDir, "LFDW;", HMI_NETVAR_SIZE)) { HMICmd.liftDir = eDown; }
+					else { lDebug(Error,"error- HMICmd.liftDir"); }
+
+					/*	-- clientID --*/
+					if (!strncmp(pHMIData->clientId, "SM13;", HMI_NETVAR_SIZE)) { HMICmd.clientID = eSigned; }
+					else { lDebug(Error,"error- HMICmd.ClientID", HMI_NETVAR_SIZE); HMICmd.clientID = eUnsigned; }
+
 
 	/* ------------------------------------------------------------------------*/
 					 RTUData.pos = 0xFE;
