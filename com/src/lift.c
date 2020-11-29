@@ -58,7 +58,7 @@ static void lift_supervisor_task()
 void lift_init()
 {
 	lift_queue = xQueueCreate(5, sizeof(struct lift_msg*));
-	xTaskCreate(lift_task, "lift", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
+	xTaskCreate(lift_task, "lift", configMINIMAL_STACK_SIZE*2, NULL, 4, NULL);
 }
 
 liftstatus_t lift_get_status(void)

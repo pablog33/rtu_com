@@ -68,7 +68,7 @@ void arm_init()
 	
 	arm_queue = xQueueCreate(5, sizeof(struct mot_pap_msg*));
 	//xTaskCreate(arm_task, "arm", configMINIMAL_STACK_SIZE, NULL, arm_TASK_PRIORITY, NULL);
-	xTaskCreate(arm_task, "arm", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
+	xTaskCreate(arm_task, "arm", configMINIMAL_STACK_SIZE*2, NULL, 4, NULL);
 	lDebug(Debug, "arm.c", "arm_task - TaskCreate"); //Pablo Priority Debug: Borrar
 }
 

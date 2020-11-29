@@ -71,7 +71,7 @@ void pole_init()
 {
 	pole_queue = xQueueCreate(5, sizeof(struct mot_pap_msg*));
 	//xTaskCreate(pole_task, "Pole", configMINIMAL_STACK_SIZE, NULL, POLE_TASK_PRIORITY, NULL);
-	xTaskCreate(pole_task, "Pole", configMINIMAL_STACK_SIZE, NULL, 4, NULL);
+	xTaskCreate(pole_task, "Pole", configMINIMAL_STACK_SIZE*2, NULL, 4, NULL);
 	lDebug(Debug, "pole.c", "pole_task - TaskCreate"); //Pablo Priority Debug: Borrar
 }
 
