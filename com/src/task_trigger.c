@@ -56,7 +56,7 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 	else if (pHMICmd->mode == eFree_run) { BitSet(ucActualFlagByte, bit0); }
 	else if (pHMICmd->mode == eAuto)	 { BitSet(ucActualFlagByte, bit1); }
 	else if (pHMICmd->mode == eLift)	 { BitSet(ucActualFlagByte, bit0); BitSet(ucActualFlagByte, bit1); }
-	else { lDebug(Error, "error - prvTrigger: pHMICmd->mode"); }
+	else { lDebug(Info, "Info - prvTrigger: pHMICmd->mode"); }
 	/*	-- ctrlEn --	*/
 	if (pHMICmd->ctrlEn == eEnable) { BitSet(ucActualFlagByte, bit2);  }
 
@@ -87,7 +87,7 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 		case 0x01:
 			if (ucMode_ActualBits == 0x00)	/*	-- STOP FREE RUN COMMAND --		*/
 			{
-				lDebug(Error, "STOP FR MODE");
+				lDebug(Info, "STOP FR MODE");
 				bTypeStop = TRUE;
 				if (pHMICmd->freeRunAxis == eArm) { bSendToArm = TRUE; }
 				else { bSendToPole = TRUE; }
@@ -95,13 +95,13 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			}
 			else if (ucMode_ActualBits == 0x01)	/*	--	START FREE RUN COMMAND --	*/
 			{
-				lDebug(Error,  "START FR MODE");
+				lDebug(Info,  "START FR MODE");
 				bTypeFreeRunStart = TRUE;
 				if (pHMICmd->freeRunAxis == eArm) { bSendToArm = TRUE; }
 				else { bSendToPole = TRUE; }
 				configASSERT(pHMICmd->mode == eFree_run); /* Deber�a corresponder solo al modo FreeRun */
 			}
-			else { lDebug(Warn, "RTUcomHMI.c", " error - prvTaskTriggerMsg:ucMode_EventBits case 0x01"); }
+			else { lDebug(Warn, "RTUcomHMI.c", " Info - prvTaskTriggerMsg:ucMode_EventBits case 0x01"); }
 
 			break;
 
@@ -110,17 +110,17 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			bSendToPole = TRUE;
 			if (ucMode_ActualBits == 0x00)	/*	-- STOP AUTO COMMAND --		*/
 			{
-				lDebug(Error, " STOP AUTO MODE");
+				lDebug(Info, " STOP AUTO MODE");
 				bTypeStop = TRUE;
 				configASSERT(pHMICmd->mode == eStop); /* Deber�a corresponder solo al modo Automatico */
 			}
 			else if (ucMode_ActualBits == 0x02)	/*	--	START AUTO COMMAND --	*/
 			{
-				lDebug(Error, " START AUTO MODE");
+				lDebug(Info, " START AUTO MODE");
 				bTypeAutoStart = TRUE;
 				configASSERT(pHMICmd->mode == eAuto); /* Deber�a corresponder solo al modo Automatico */
 			}
-			else { lDebug(Warn, "RTUcomHMI.c", " error - prvTaskTriggerMsg:ucMode_EventBits case 0x02"); }
+			else { lDebug(Warn, "RTUcomHMI.c", " Info - prvTaskTriggerMsg:ucMode_EventBits case 0x02"); }
 
 			break;
 
@@ -128,18 +128,18 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			bSendToLift = TRUE;
 			if (ucMode_ActualBits == 0x00)	/*	-- STOP LIFT COMMAND --		*/
 			{
-				lDebug(Error, " STOP LIFT");
+				lDebug(Info, " STOP LIFT");
 				bTypeStop = TRUE;
 				configASSERT(pHMICmd->mode == eStop); /* Deber�a corresponder solo al modo Lift */
 			}
 			else if (ucMode_ActualBits == 0x03)	/*	--	START LIFT COMMAND --	*/
 			{
-				lDebug(Error, " START LIFT");
+				lDebug(Info, " START LIFT");
 				if (pHMICmd->liftDir == eUp) { bTypeLiftUp = TRUE; }
 				else { bTypeLiftDown = TRUE; }
 				configASSERT(pHMICmd->mode == eLift); /* Deber�a corresponder solo al modo Lift */
 			}
-			else { lDebug(Warn, "RTUcomHMI.c", " error - prvTaskTriggerMsg:ucMode_EventBits case 0x03"); }
+			else { lDebug(Warn, "RTUcomHMI.c", " Info - prvTaskTriggerMsg:ucMode_EventBits case 0x03"); }
 
 			
 
@@ -157,10 +157,10 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 				bSendToArm = TRUE;
 				bSendToPole = TRUE;
 				bSendToLift = TRUE;
-				lDebug(Error, " CONTROL DISABLE! STOP ALL!");
+				lDebug(Info, " CONTROL DISABLE! STOP ALL!");
 				configASSERT(pHMICmd->ctrlEn == eDesable); /* Deber�a corresponder al HMICmd.CtrlEn = eDesable */
 			}
-			else { lDebug(Error, " Se activa el control -CONTROL ENABLE-!"); }
+			else { lDebug(Info, " Se activa el control -CONTROL ENABLE-!"); }
 		}
 		
 		if(bSendToArm)
@@ -168,12 +168,12 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			if (bTypeStop) { pArmMsg->type = MOT_PAP_MSG_TYPE_STOP; }
 			else if (bTypeFreeRunStart) { pArmMsg->type = MOT_PAP_MSG_TYPE_FREE_RUNNING; }
 			else if (bTypeAutoStart) { pArmMsg->type = MOT_PAP_MSG_TYPE_CLOSED_LOOP; }
-			else { lDebug(Error, " Error bSendToArm"); }
+			else { lDebug(Info, " Info bSendToArm"); }
 			pArmMsg->free_run_direction = pHMICmd->freeRunDir;
 			pArmMsg->free_run_speed = pHMICmd->velCmdArm;
 			pArmMsg->closed_loop_setpoint = pHMICmd->posCmdArm;
-			if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Error, " Comando enviado a arm.c exitoso!"); }
-			else { lDebug(Error, "Comando NO PUDO ser enviado a arm.c"); }
+			if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, " Comando enviado a arm.c exitoso!"); }
+			else { lDebug(Info, "Comando NO PUDO ser enviado a arm.c"); }
 		}
 		if (bSendToPole)
 		{
@@ -181,12 +181,12 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			if (bTypeStop) { pPoleMsg->type = MOT_PAP_MSG_TYPE_STOP; }
 			else if (bTypeFreeRunStart) { pPoleMsg->type = MOT_PAP_MSG_TYPE_FREE_RUNNING; }
 			else if (bTypeAutoStart) { pPoleMsg->type = MOT_PAP_MSG_TYPE_CLOSED_LOOP; }
-			else { lDebug(Error, "Error bSendToPole"); }
+			else { lDebug(Info, "Info bSendToPole"); }
 			pPoleMsg->free_run_direction = pHMICmd->freeRunDir;
 			pPoleMsg->free_run_speed = pHMICmd->velCmdPole;
 			pPoleMsg->closed_loop_setpoint = pHMICmd->posCmdPole;
-			if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Error, "Comando enviado a pole.c exitoso!"); }
-			else { lDebug(Error, "Comando NO PUDO ser enviado a pole.c"); }
+			if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a pole.c exitoso!"); }
+			else { lDebug(Info, "Comando NO PUDO ser enviado a pole.c"); }
 		}
 		if(bSendToLift)
 		{
@@ -194,9 +194,9 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
 			if (bTypeStop) { pLiftMsg->type = LIFT_TYPE_STOP; }
 			else if (bTypeLiftUp) { pLiftMsg->type = LIFT_TYPE_UP; }
 			else if (bTypeLiftDown) { pLiftMsg->type = LIFT_TYPE_DOWN; }
-			else { lDebug(Error, "Error bSendToLift"); }
-			if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Error, "Comando enviado a lift.c exitoso!"); }
-			else { lDebug(Error, "Comando NO PUDO ser enviado a lift.c"); }
+			else { lDebug(Info, "Info bSendToLift"); }
+			if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a lift.c exitoso!"); }
+			else { lDebug(Info, "Comando NO PUDO ser enviado a lift.c"); }
 		}
 		
 

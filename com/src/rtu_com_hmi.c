@@ -58,7 +58,9 @@ tcp_thread(void *arg)
 
 					NetValuesReceivedFromHMI(pHMIData, &HMICmd);
 	/* ------------------------------------------------------------------------*/
-//
+
+					TaskTriggerMsg(&HMICmd, iServerStatus);
+
 					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
 
 					err = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY);

@@ -163,14 +163,8 @@ typedef struct mot_pap_status {
 	volatile bool stalled;
 }mpapstatus_t;
 
-QueueHandle_t pole_queue;
-
-QueueHandle_t arm_queue;
 
 
-/*	----------------------------------------------------------------------------------------- */
-/*	----------------------------	-	LIFT	-	----------------------------------------- */
-/*	----------------------------------------------------------------------------------------- */
 
 /*	--	lift	--	*/
 typedef enum {LIFT_TYPE_UP = 0, LIFT_TYPE_DOWN = 1, LIFT_TYPE_STOP} eLift_t;
@@ -191,10 +185,27 @@ mpapstatus_t pole_get_status(void);	/* Funciones que utilizamos para obtener los
 mpapstatus_t arm_get_status(void);
 liftstatus_t lift_get_status(void);
 
+/*	-- Declaracion de objetos --	*/
+QueueHandle_t pole_queue;
+QueueHandle_t arm_queue;
+QueueHandle_t lift_queue;
+
 void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx, mpapstatus_t* pArmStatus, mpapstatus_t* pPoleStatus, liftstatus_t* pLiftStatus);
 
-/*	-- Declaraci�n de objetos --	*/
-QueueHandle_t lift_queue;
+
+
+
+
+/*	----------------------------------------------------------------------------------------- */
+/*	----------------------------	-	TASK TRIGGER & STATUS HANDLER	-	----------------- */
+/*	----------------------------------------------------------------------------------------- */
+
+void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus);
+
+//static int16_t prvStatusHandlerRecv(HMICmd_t* pHMICmd, int16_t iServerStatus, Socket_t xConnectedSocket, uint16_t usLenHMIDataRx, uint16_t iRecv);
+
+//static int16_t prvStatusHandlerSend(int16_t iServerStatus, int lSent, Socket_t xConnectedSocket);
+
 
 ///*	-- Declaraci�n de funciones RTUcomHMI --	*/
 ///*
