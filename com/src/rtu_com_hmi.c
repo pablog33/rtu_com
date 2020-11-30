@@ -15,7 +15,7 @@ tcp_thread(void *arg)
 {
 	LWIP_UNUSED_ARG(arg);
 	struct netconn *conn, *newconn;
-	err_t err;
+	err_t err_accept, err_recv, err_send, err_dataBuf;
 	void *unused;
 
 	/* Nuevo identificador de conexion -conn- */
@@ -31,10 +31,10 @@ tcp_thread(void *arg)
 	for(;;) /* Bloqueo de hilo, en espera de nueva conexion */
 	{
 		/* Aceptar nueva conexion */
-		if (err = netconn_accept(conn, &newconn) == ERR_OK)
+		if (err_accept = netconn_accept(conn, &newconn) == ERR_OK)
 		{
 			struct netbuf *buf;
-			u16_t len_recvData;
+			uint16_t uiLenRecvData;
 			HMIData_t *pHMIData;
 			HMICmd_t HMICmd;
 			RTUData_t RTUDataTx;
@@ -50,41 +50,39 @@ tcp_thread(void *arg)
 			pole_init();
 			lift_init();
 
-			while ((err = netconn_recv(newconn, &buf)) == ERR_OK)
+			while ((err_recv = netconn_recv(newconn, &buf)) == ERR_OK)
 			{
 				do
 				{
-					netbuf_data(buf, &pHMIData, &len_recvData);
+					if( (err_dataBuf = netbuf_data(buf, &pHMIData, &uiLenRecvData) ) != ERR_OK)
+					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_dataBuf);
+						break;
+					}
 
-					NetValuesReceivedFromHMI(pHMIData, &HMICmd);
+					iServerStatus = NetValuesReceivedFromHMI(pHMIData, &HMICmd, uiLenRecvData);
 	/* ------------------------------------------------------------------------*/
 
-					TaskTriggerMsg(&HMICmd, iServerStatus);
+					if( iServerStatus == ERR_OK )
+					{
+						TaskTriggerMsg(&HMICmd);
+					}
 
 					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
 
-					err = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY);
-
-					lDebug(Debug, "%d", err);
-
-					//RTUData.pos = 0xFE;
-//					 snprintf(RTUData.cmd, 5, "%s", "hola");
-//
-//					 snprintf(RTUData.buffer, 8, "%x %s", RTUData.pos, RTUData.cmd);
-//					 err = netconn_write(newconn, RTUData.buffer, sizeof(RTUData.buffer), NETCONN_COPY);
-
+					if((err_send = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY)) != ERR_OK)
+					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_send); }
 
 				} while (netbuf_next(buf) >= 0);
 
 				netbuf_delete(buf);
 
+				//if( ( ( iServerStatus && 0x80  ) != ERR_OK ) || ( ( err_dataBuf  ) != ERR_OK ) ){	break;	}
+
 			  }
 
 			lDebug(Debug, "Desconexion RTU - ");
 
-			lDebug(Debug, "%d", err);
-
-			prvDebugErrorTxRx(err);
+			if( err_recv )	{	lDebug(Error, "Error en funcion NETCONN -netconn_recv-"); prvNetconnError(err_recv);	}
 
 			/*printf("Got EOF, looping\n");*/
 			  /* Close connection and discard connection identifier. */
@@ -92,9 +90,9 @@ tcp_thread(void *arg)
 			  netconn_delete(newconn);
 			  //tcp_thread(unused);
 
-		} /*	while	*/
+		} /*	while-netconn_accept	*/
 
-	} /* while(1) */
+	} /* for(;;) */
 
 } /* tcp_thread() */
 /*-----------------------------------------------------------------------------------*/
@@ -104,20 +102,25 @@ void stackIp_ThreadInit(void)
 }
 /*-----------------------------------------------------------------------------------*/
 
-void prvDebugErrorTxRx(err_t err)
+void prvNetconnError(err_t err)
 {
 	switch(err)
 	{
 	case(ERR_TIMEOUT):
-		lDebug(Error, "RecvTimeOut - Se detienen procesos!! \n");
+		lDebug(Error, "\n ENET - RecvTimeOut - Se detienen procesos!! \n");
 	case(ERR_ARG):
-			lDebug(Error, "Argumento de funcion -netconn_recv- ilegal - Se detienen procesos!! \n");
+			lDebug(Error, "\n ENET - Argumento de funcion -netconn_recv- ilegal - Se detienen procesos!! \n");
 	case(ERR_CONN):
-			lDebug(Error, "Problemas de conexion - Se detienen procesos!! \n");
+			lDebug(Error, "\n Problemas de conexion - Se detienen procesos!! \n");
 	case(ERR_CLSD):
-			lDebug(Error, "Closed Connection - Se detienen procesos!! \n");
+			lDebug(Error, "\n Closed Connection - Se detienen procesos!! \n");
+	case(ERR_BUF):
+		lDebug(Error, "\n Error al generar Buffer - Se detienen procesos!! \n");
 	}
 	return;
 }
 
 #endif /* LWIP_NETCONN */
+
+///*-----------------------------------------------------------*/
+

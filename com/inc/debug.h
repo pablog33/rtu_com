@@ -128,7 +128,7 @@ void debugClose(void);
  * @param fmt the formatting string (<b>MUST</b> be a literal
  */
 #define lDebug(level, fmt, ...) \
-  do { \
+do { \
        if (DEBUG_ENABLED && (debugLevel <= level)) \
          printf("At time %u - %s %s[%d] %s() " fmt "\n", xTaskGetTickCount(), levelText(level), __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
   } while(0)

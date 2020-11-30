@@ -20,21 +20,29 @@
 //#include "mot_pap.h"
 
 /**
+ * @def Puerto de conexion del RTU - socket
+ */
+#define PORT_NUMBER		5020
+/**
  * @def Timeout -ms- para intervalo entre ciclos de recepcion y transmision.
  * @brief Espera de nueva trama desde HMI dentro de este intrvalo de tiempo.
  * @note Al generarse timeout, se produce la desconexion por parte de la RTU.
  */
 #define	RCV_TIMEO		10000
 
-/**
- * @def Puerto de conexion del RTU - socket
- */
-#define PORT_NUMBER		5020
+#define RCV_TRAMA_LARGO	41
+
+#define ERROR_TRAMA_VACIA 0x81
+#define ERROR_TRAMA_LARGO 0x82
+#define ERROR_TRAMA_DATO 0x83
+#define ERROR_TRAMA_CLIENTE 0x84
+
+
+
 
 void stackIp_ThreadInit(void);
 													 
-void prvDebugErrorTxRx(err_t err);
-					
+static void prvNetconnError(err_t err);
 
 /*	----------------------------------------------------------------------------------------- */
 /*	----------------------------	-	From HMI	-	------------------------------------- */
@@ -104,7 +112,9 @@ typedef struct
 
 } HMICmd_t;
 
-void NetValuesReceivedFromHMI(HMIData_t *HMIData, HMICmd_t *HMICmd);
+int16_t NetValuesReceivedFromHMI(HMIData_t *HMIData, HMICmd_t *HMICmd, uint16_t uLenDataRecv);
+
+static uint16_t prvFormatoTramaRecv(uint16_t uiLenDataRecv);
 
 /*	----------------------------------------------------------------------------------------- */
 /*	----------------------------	-	From RTU	-	------------------------------------- */
@@ -200,7 +210,7 @@ void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx, mpapsta
 /*	----------------------------	-	TASK TRIGGER & STATUS HANDLER	-	----------------- */
 /*	----------------------------------------------------------------------------------------- */
 
-void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus);
+void TaskTriggerMsg(HMICmd_t* pHMICmd);
 
 //static int16_t prvStatusHandlerRecv(HMICmd_t* pHMICmd, int16_t iServerStatus, Socket_t xConnectedSocket, uint16_t usLenHMIDataRx, uint16_t iRecv);
 

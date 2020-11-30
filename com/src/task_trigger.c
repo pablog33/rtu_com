@@ -25,7 +25,7 @@
 /*	Motor Control	*/
 //#include "mot_pap.h"
 
-void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus)
+void TaskTriggerMsg(HMICmd_t* pHMICmd)
 {
 	static unsigned char ucPreviousFlagByte;
 	unsigned char ucActualFlagByte, ucEventFlagByte, ucMode_ActualBits, ucMode_EventBits;
