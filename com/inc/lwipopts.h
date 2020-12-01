@@ -132,7 +132,7 @@
 
 #define TCPIP_MBOX_SIZE                 6
 
-#define MEM_LIBC_MALLOC                 1
+#define MEM_LIBC_MALLOC                 0
 #define MEMP_MEM_MALLOC                 1
 
 /* Needed for malloc/free */
