@@ -43,6 +43,7 @@ tcp_thread(void *arg)
 			mpapstatus_t PoleStatus;
 			liftstatus_t LiftStatus;
 			uint16_t iServerStatus = 0x00;
+			uint32_t cycleCount = 0;
 
 			newconn->recv_timeout = RCV_TIMEO;
 
@@ -54,6 +55,7 @@ tcp_thread(void *arg)
 			{
 				do
 				{
+					++cycleCount;
 					if( (err_dataBuf = netbuf_data(buf, &pHMIData, &uiLenRecvData) ) != ERR_OK)
 					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_dataBuf);
 						break;
@@ -68,6 +70,8 @@ tcp_thread(void *arg)
 					}
 
 					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
+
+					lDebug(Debug, "%d", cycleCount);
 
 					if((err_send = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY)) != ERR_OK)
 					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_send); }

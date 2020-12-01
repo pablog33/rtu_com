@@ -46,7 +46,8 @@ static void pole_task(void* par)
 				lDebug(Info, "STOP Pole");
 				break;
 			}
-			
+
+			vPortFree(msg_rcv);
 
 		}
 	}
