@@ -43,7 +43,7 @@ static void pole_task(void* par)
 
 			default:
 				cw, ccw = false;
-				lDebug(Error, "Pole STOP");
+				lDebug(Info, "STOP Pole");
 				break;
 			}
 			

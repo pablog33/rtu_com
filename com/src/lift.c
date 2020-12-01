@@ -28,14 +28,14 @@ static void lift_task(void *par)
 
 				switch (msg_rcv->type) {
 				case LIFT_TYPE_UP:
-					lDebug(Error, "lift.c UP");
+					lDebug(Info, "lift.c UP");
 
 					break;
 				case LIFT_TYPE_DOWN:
-					lDebug(Error, "lift.c DOWN");
+					lDebug(Info, "lift.c DOWN");
 					break;
 				default:
-					lDebug(Error, "lift.c STOP");
+					lDebug(Info, "lift.c STOP");
 					break;
 				}
 

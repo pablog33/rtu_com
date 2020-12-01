@@ -43,7 +43,7 @@ static void arm_task(void* par)
 				//calcular error de posici�n
 				break;
 			default:
-				lDebug(Error, "arm.c", "STOP");
+				lDebug(Info, "STOP arm.c");
 				break;
 			}
 

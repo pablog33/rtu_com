@@ -74,11 +74,11 @@ tcp_thread(void *arg)
 
 				} while (netbuf_next(buf) >= 0);
 
+				if( ( ( iServerStatus && 0x80  ) != ERR_OK ) || ( ( err_dataBuf  ) != ERR_OK ) ){	break;	}
+
 				netbuf_delete(buf);
 
-				//if( ( ( iServerStatus && 0x80  ) != ERR_OK ) || ( ( err_dataBuf  ) != ERR_OK ) ){	break;	}
-
-			  }
+			  } /* while-netconn_recv */
 
 			lDebug(Debug, "Desconexion RTU - ");
 
@@ -90,7 +90,7 @@ tcp_thread(void *arg)
 			  netconn_delete(newconn);
 			  //tcp_thread(unused);
 
-		} /*	while-netconn_accept	*/
+		} /*	if-netconn_accept	*/
 
 	} /* for(;;) */
 
