@@ -218,6 +218,8 @@ void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx, mpapsta
 
 void TaskTriggerMsg(HMICmd_t* pHMICmd);
 
+static void prvEmergencyStop(void);
+
 //static int16_t prvStatusHandlerRecv(HMICmd_t* pHMICmd, int16_t iServerStatus, Socket_t xConnectedSocket, uint16_t usLenHMIDataRx, uint16_t iRecv);
 
 //static int16_t prvStatusHandlerSend(int16_t iServerStatus, int lSent, Socket_t xConnectedSocket);

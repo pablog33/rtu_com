@@ -87,9 +87,13 @@ tcp_thread(void *arg)
 
 			  } /* while-netconn_recv */
 
-			lDebug(Debug, "Desconexion RTU - ");
+
 
 			if( err_recv )	{	lDebug(Error, "Error en funcion NETCONN -netconn_recv-"); prvNetconnError(err_recv);	}
+
+			prvEmergencyStop();
+
+			lDebug(Debug, "	- ** 	Desconexion RTU 	** - ");
 
 			/* Close connection and discard connection identifier. */
 			netconn_close(newconn);
@@ -133,4 +137,33 @@ void prvNetconnError(err_t err)
 #endif /* LWIP_NETCONN */
 
 ///*-----------------------------------------------------------*/
+/**
+ * @brief 	Stops movements for all three axis on exit ethernet loop with HMI.
+ * @param 	none.
+ * @return	never.
+ * @note	Stops movements on HMI communication lost.
+ */
+static void prvEmergencyStop(void)
+{
+	mpap_t* pArmMsg;
+	mpap_t* pPoleMsg;
+	lift_t *pLiftMsg;
 
+	pArmMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t));
+	pArmMsg->type = MOT_PAP_MSG_TYPE_STOP;
+	if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, " Comando enviado a arm.c exitoso!"); }
+				else { lDebug(Info, "Comando NO PUDO ser enviado a arm.c"); }
+
+	pPoleMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t));
+	pPoleMsg->type = MOT_PAP_MSG_TYPE_STOP;
+	if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a pole.c exitoso!"); }
+				else { lDebug(Info, "Comando NO PUDO ser enviado a pole.c"); }
+
+	pLiftMsg = (lift_t*)pvPortMalloc(sizeof(lift_t));
+	pLiftMsg->type = LIFT_TYPE_STOP;
+	if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a lift.c exitoso!"); }
+	else { lDebug(Info, "Comando NO PUDO ser enviado a lift.c"); }
+
+	return;
+
+}
