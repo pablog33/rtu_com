@@ -56,31 +56,34 @@ tcp_thread(void *arg)
 				do
 				{
 					++cycleCount;
+
 					if( (err_dataBuf = netbuf_data(buf, &pHMIData, &uiLenRecvData) ) != ERR_OK)
 					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_dataBuf);
+						iServerStatus = ERROR_NETCONN;
 						break;
 					}
 
-					iServerStatus = NetValuesReceivedFromHMI(pHMIData, &HMICmd, uiLenRecvData);
-	/* ------------------------------------------------------------------------*/
+					if( ( iServerStatus = NetValuesReceivedFromHMI(pHMIData, &HMICmd, uiLenRecvData) ) != ERR_OK)
+					{ break; }
 
-					if( iServerStatus == ERR_OK )
-					{
-						TaskTriggerMsg(&HMICmd);
-					}
+					TaskTriggerMsg(&HMICmd);
 
 					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
 
 					lDebug(Debug, "%d", cycleCount);
 
 					if((err_send = netconn_write(newconn, RTUDataTx.buffer, sizeof(RTUDataTx.buffer), NETCONN_COPY)) != ERR_OK)
-					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_send); }
+					{	lDebug(Error, "Error en funcion NETCONN -netbuf_data-"); prvNetconnError(err_send);
+						iServerStatus = ERROR_NETCONN;
+						break;
+					}
 
 				} while (netbuf_next(buf) >= 0);
 
-				if( ( ( iServerStatus && 0x80  ) != ERR_OK ) || ( ( err_dataBuf  ) != ERR_OK ) ){	break;	}
-
 				netbuf_delete(buf);
+
+				if( ( ( iServerStatus && 0x80  ) != ERR_OK ) )
+				{	break;	}
 
 			  } /* while-netconn_recv */
 
@@ -88,11 +91,9 @@ tcp_thread(void *arg)
 
 			if( err_recv )	{	lDebug(Error, "Error en funcion NETCONN -netconn_recv-"); prvNetconnError(err_recv);	}
 
-			/*printf("Got EOF, looping\n");*/
-			  /* Close connection and discard connection identifier. */
-			  netconn_close(newconn);
-			  netconn_delete(newconn);
-			  //tcp_thread(unused);
+			/* Close connection and discard connection identifier. */
+			netconn_close(newconn);
+			netconn_delete(newconn);
 
 		} /*	if-netconn_accept	*/
 
@@ -105,7 +106,12 @@ void stackIp_ThreadInit(void)
   sys_thread_new("tcp_thread", tcp_thread, NULL, DEFAULT_THREAD_STACKSIZE, DEFAULT_THREAD_PRIO);
 }
 /*-----------------------------------------------------------------------------------*/
-
+/**
+ * @brief 	Only prints out errors related with NETCONN LWIP module.
+ * @param 	LWIP error code
+ * @return	never
+ * @note	Only prints. Variable iServerStatus for hanlde error events, #define ERROR_NETCONN 0x84.
+ */
 void prvNetconnError(err_t err)
 {
 	switch(err)

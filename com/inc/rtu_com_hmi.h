@@ -32,10 +32,16 @@
 
 #define RCV_TRAMA_LARGO	41
 
-#define ERROR_TRAMA_VACIA 0x81
-#define ERROR_TRAMA_LARGO 0x82
-#define ERROR_TRAMA_DATO 0x83
-#define ERROR_TRAMA_CLIENTE 0x84
+/**
+* @def ERROR_SM13
+* @brief Variable iServerStatus error identifiers
+* @note Handle general spec error events
+*/
+#define ERROR_TRAMA_VACIA 		0x81
+#define ERROR_TRAMA_LARGO 		0x82
+#define ERROR_TRAMA_DATO 		0x83
+#define ERROR_TRAMA_CLIENTE 	0x84
+#define ERROR_NETCONN 			0x85
 
 
 
