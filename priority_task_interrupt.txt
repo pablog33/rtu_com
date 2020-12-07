@@ -1,0 +1,61 @@
+
+
+
+
+
+
+/*-------------- ETHERNET ---------------------*/
+
+5: 
+-tcpip_thread
+Funcion principal de LWIP. Interfaz con LWIP core functions. 
+Las demás funciones se comunican con este hilo mediante mensajes.
+Inicializa Timers.
+/arch/lpc18xx_43xx_emac.c
+
+4: 
+-receive_thread
+Deferred ETH_IRQ task
+-txclean_thread
+/arch/lpc18xx_43xx_emac.c
+Deferred ETH_IRQ Task
+/arch/lpc18xx_43xx_emac.c
+-arm
+-pole
+_lift
+
+3:
+_TmrSvc
+FreRtos Receive TimeOut
+
+1: 
+_tcp_thead
+Ciclos de Transferencia de tramas
+_SetupIFx
+Inicialización de los hilos
+
+0:
+_IDLE
+
+/*-------------------------------------*/
+INTERRUPTS
+
+ETH_IRQ
+Interrupción interna de DMA al recibir dato válido a traves de DV del PHY, o al tener dato listo para enviar.
+Prioridad: 6
+rtu/main.c
+
+
+/* ------------------  NFC  ------------------*/
+
+7:
+_PoleSupervisor
+_ArmSupervisor
+_TmrSvc
+
+6:
+_Arm
+_Pole
+_Lift
+_RTUcomHMI
+

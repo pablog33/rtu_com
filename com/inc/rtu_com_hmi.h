@@ -17,7 +17,6 @@
 #include "task.h"
 #include "semphr.h"
 
-//#include "mot_pap.h"
 
 /**
  * @def Puerto de conexion del RTU - socket
@@ -28,7 +27,7 @@
  * @brief Espera de nueva trama desde HMI dentro de este intrvalo de tiempo.
  * @note Al generarse timeout, se produce la desconexion por parte de la RTU.
  */
-#define	RCV_TIMEO		10000
+#define	RCV_TIMEO		2000
 
 #define RCV_TRAMA_LARGO	41
 
@@ -48,7 +47,7 @@
 
 void stackIp_ThreadInit(void);
 													 
-static void prvNetconnError(err_t err);
+
 
 /*	----------------------------------------------------------------------------------------- */
 /*	----------------------------	-	From HMI	-	------------------------------------- */
@@ -70,13 +69,13 @@ typedef struct HMIDATA
 	uint16_t posCmdPole;
 	uint8_t velCmdArm;
 	uint8_t velCmdPole;
-	unsigned char mode[HMI_NETVAR_SIZE];		/*	-- mode --			STOP; FRUN; AUTO; LIFT; */
-	unsigned char freeRunAxis[HMI_NETVAR_SIZE];	/*	-- freeRunAxis	--	POLE; ARM_;				*/
-	unsigned char freeRunDir[HMI_NETVAR_SIZE];	/*	-- freeRunDir  --	CW__; CCW_;				*/
-	unsigned char ctrlEn[HMI_NETVAR_SIZE];		/*	-- ctrlEn --		CTLE; DCTL;				*/
-	unsigned char stallEn[HMI_NETVAR_SIZE];		/*	-- stallEn --		STLE; DSTL;				*/
-	unsigned char liftDir[HMI_NETVAR_SIZE];		/*	-- LiftDir --		LFUP; LFDW;				*/
-	unsigned char clientId[HMI_NETVAR_SIZE];	/*	-- clientId --		SM13; 					*/
+	char mode[HMI_NETVAR_SIZE];		/*	-- mode --			STOP; FRUN; AUTO; LIFT; */
+	char freeRunAxis[HMI_NETVAR_SIZE];	/*	-- freeRunAxis	--	POLE; ARM_;				*/
+	char freeRunDir[HMI_NETVAR_SIZE];	/*	-- freeRunDir  --	CW__; CCW_;				*/
+	char ctrlEn[HMI_NETVAR_SIZE];		/*	-- ctrlEn --		CTLE; DCTL;				*/
+	char stallEn[HMI_NETVAR_SIZE];		/*	-- stallEn --		STLE; DSTL;				*/
+	char liftDir[HMI_NETVAR_SIZE];		/*	-- LiftDir --		LFUP; LFDW;				*/
+	char clientId[HMI_NETVAR_SIZE];	/*	-- clientId --		SM13; 					*/
 
 } HMIData_t;
 
@@ -120,7 +119,7 @@ typedef struct
 
 int16_t NetValuesReceivedFromHMI(HMIData_t *HMIData, HMICmd_t *HMICmd, uint16_t uLenDataRecv);
 
-static uint16_t prvFormatoTramaRecv(uint16_t uiLenDataRecv);
+
 
 /*	----------------------------------------------------------------------------------------- */
 /*	----------------------------	-	From RTU	-	------------------------------------- */
@@ -154,62 +153,16 @@ enum { RTU_NETVAR_SIZE = 9 };
 
 } RTUData_t;
 
-enum mot_pap_direction {
-	MOT_PAP_DIRECTION_CW = 0, MOT_PAP_DIRECTION_CCW = 1,
-};
-typedef struct mot_pap_msg {
-	enum {
-		MOT_PAP_MSG_TYPE_FREE_RUNNING,
-		MOT_PAP_MSG_TYPE_CLOSED_LOOP,
-		MOT_PAP_MSG_TYPE_STOP
-	} type;
-	enum mot_pap_direction free_run_direction;
-	uint32_t free_run_speed;
-	uint32_t closed_loop_setpoint;
-}mpap_t;
-typedef struct mot_pap_status {
-	enum {
-		MOT_PAP_STATUS_CW = 0, MOT_PAP_STATUS_CCW = 1, MOT_PAP_STATUS_STOP
-	} dir;
-	int32_t posCmd;
-	int32_t posAct;
-	uint32_t vel;
-	volatile bool cwLimit;
-	volatile bool ccwLimit;
-	volatile bool stalled;
-}mpapstatus_t;
-
-
-
-
-/*	--	lift	--	*/
-typedef enum {LIFT_TYPE_UP = 0, LIFT_TYPE_DOWN = 1, LIFT_TYPE_STOP} eLift_t;
-
-typedef struct
-{
-	eLift_t type;
-}lift_t;
-
-typedef struct lift_status {
-	eLift_t type;
-	volatile bool upLimit;
-	volatile bool downLimit;
-}liftstatus_t;
 
 /*	-- Declaracion de funciones compartidas --	*/
-mpapstatus_t pole_get_status(void);	/* Funciones que utilizamos para obtener los valores de las estructuras mot_pap_status */
-mpapstatus_t arm_get_status(void);
-liftstatus_t lift_get_status(void);
+struct lift *lift_get_status(void);
 
 /*	-- Declaracion de objetos --	*/
 QueueHandle_t pole_queue;
 QueueHandle_t arm_queue;
 QueueHandle_t lift_queue;
 
-void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx, mpapstatus_t* pArmStatus, mpapstatus_t* pPoleStatus, liftstatus_t* pLiftStatus);
-
-
-
+void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx);
 
 
 /*	----------------------------------------------------------------------------------------- */
@@ -218,44 +171,6 @@ void NetValuesToSendFromRTU(int16_t iServerStatus,RTUData_t* pRTUDataTx, mpapsta
 
 void TaskTriggerMsg(HMICmd_t* pHMICmd);
 
-static void prvEmergencyStop(void);
+void vStackIpSetup(void *pvParameters);
 
-//static int16_t prvStatusHandlerRecv(HMICmd_t* pHMICmd, int16_t iServerStatus, Socket_t xConnectedSocket, uint16_t usLenHMIDataRx, uint16_t iRecv);
-
-//static int16_t prvStatusHandlerSend(int16_t iServerStatus, int lSent, Socket_t xConnectedSocket);
-
-
-///*	-- Declaraci�n de funciones RTUcomHMI --	*/
-///*
-//	Asigna valores a RTUDATA seg�n el contenido de RTUVAL.
-//	Esta conversi�n de valores se realiza con el fin de
-//	transmitir valores "Human readable" por ethernet.
-//	De esta forma se simplifica el debbug, mediante captura
-//	de tramas ethernet.
-//*/
-//
-///*
-//	-- DataRxTx --
-//	Intercambio de tramas con el software HMI.
-// */
-//static void prvDataRxTxTask(void* pvParameters);
-///*
-//	-- Desentramado HMIDataRx --
-//	Se trabaja la trama recibida desde HMI para conformar los datos y comandos HMI.
-//
-///*	-- Conexi�n del servidor --
-//		Queda a la espera por solicitud de conexi�n del Software HMI en el puerto 5020.
-// */
-//static void prvServerConnectTask(void* pvParameters);
-///**/
-////static int16_t prvStatusHandlerRecv(HMICmd_t* pHMICmd, int16_t iServerStatus, Socket_t xConnectedSocket, uint16_t usLenHMIDataRx, uint16_t iRecv);
-///**/
-//static int16_t prvStatusHandlerSend(int16_t iServerStatus, int lSent, Socket_t xConnectedSocket);
-///**/
-//void TaskTriggerMsg(HMICmd_t* pHMICmd, int16_t iServerStatus);
-///*	LECCION: TODOS LOS ARGUMENTOS QUE SE INCLUYEN EN LAS FUNCIONES DEBEN NECESARIAMENTE COMPARTIR EL MISMO ARCHIVO .H EN DONDE
-//	SE DECLARA LA FUNCI�N. POR EJEMPLO, LA FUNCI�N -prvTrip- SE DECLARA EN ESTE ARCHIVO -RTUcomHMI.h- POR LO QUE LA ESTRUCTURA
-//	DE TIPO mpap_t, NO PUEDE DECLARARSE EN EL ARCHIVO -MOT_PAP.h-. POR ESO MOV� LA DECLARACI�N A ESTE ARCHIVO.
-//*/
-/*-----------------------------------------------------------*/
-#endif
+#endif /* RTU_COM_HMI_H */

@@ -22,20 +22,22 @@
 #include "lwip/err.h"
 
 /*	Motor Control	*/
-//#include "mot_pap.h"
+#include "mot_pap.h"
+#include "lift.h"
 
+static uint16_t prvFormatoTramaRecv(uint16_t uiLenDataRecv);
 
-void NetValuesToSendFromRTU(int16_t iServerStatus, RTUData_t *pRTUDataTx, mpapstatus_t* pArmStatus, mpapstatus_t* pPoleStatus, liftstatus_t* pLiftStatus)
+void NetValuesToSendFromRTU(int16_t iServerStatus, RTUData_t *pRTUDataTx)
 {
-
-	*(pPoleStatus) = pole_get_status();	/*	Obtengo los valores de los dispositivos internos -Arm, Pole, LIFT-	*/
-	*(pArmStatus) = arm_get_status();
-	*(pLiftStatus) = lift_get_status();
+	/*	Obtengo los valores desde el driver correspondiente a cada eje -Arm, Pole, LIFT-	*/
+	struct mot_pap *pPoleStatus = pole_get_status();
+	struct mot_pap *pArmStatus= arm_get_status();
+	struct lift *pLiftStatus= lift_get_status();
 
 	pRTUDataTx->resActArm = pArmStatus->posAct;
 	pRTUDataTx->resActPole = pPoleStatus->posAct;
-	pRTUDataTx->velActArm = pArmStatus->vel;
-	pRTUDataTx->velActPole = pPoleStatus->vel;
+	pRTUDataTx->velActArm = pArmStatus->freq;
+	pRTUDataTx->velActPole = pPoleStatus->freq;
 
 	/*	-- cwLimitArm --	*/
 	if (pArmStatus->cwLimit)	{	sprintf(pRTUDataTx->cwLimitArm, "%s", "ACW_LIM;");	}
@@ -143,7 +145,7 @@ int16_t NetValuesReceivedFromHMI(HMIData_t *HMIData, HMICmd_t *HMICmd, uint16_t 
 	return iServerStatus;
 }
 
-uint16_t prvFormatoTramaRecv(uint16_t uiLenDataRecv)
+static uint16_t prvFormatoTramaRecv(uint16_t uiLenDataRecv)
 {
 	uint16_t iStatus = ERR_OK;
 

@@ -10,19 +10,19 @@
 #include "semphr.h"
 
 /* SM13 includes */
-//#include "mot_pap.h"
+#include "mot_pap.h"
 #include "rtu_com_hmi.h"
 #include "debug.h"
 
 #define arm_TASK_PRIORITY ( configMAX_PRIORITIES - 2 )
 
-static struct mot_pap_status status;
+struct mot_pap arm;
 static void arm_supervisor_task();
 
 
 static void arm_task(void* par)
 {
-	mpap_t *msg_rcv;
+	struct mot_pap_msg *msg_rcv;
 
 	while (1) {
 		if (xQueueReceive(arm_queue, &msg_rcv, portMAX_DELAY) == pdPASS)
@@ -32,18 +32,18 @@ static void arm_task(void* par)
 			switch (msg_rcv->type)
 			{
 
-			case MOT_PAP_MSG_TYPE_FREE_RUNNING:
-				lDebug(Info, "Arm free_run_direction:", msg_rcv->free_run_direction);
+			case MOT_PAP_TYPE_FREE_RUNNING:
+				lDebug(Debug, "Arm free_run_direction: %d", msg_rcv->free_run_direction);
 				/*	cw/ccw limits!!	*/
-				if (msg_rcv->free_run_direction) { lDebug(Debug, "Giro Anti-horario"); }else { lDebug(Debug, "Giro Horario"); }
-				lDebug(Info, "Arm free_run_speed:", msg_rcv->free_run_speed);
+				if (msg_rcv->free_run_direction) { lDebug(Info, "Giro Anti-horario"); }else { lDebug(Debug, "Giro Horario"); }
+				lDebug(Info, "Arm free_run_speed: %d", msg_rcv->free_run_speed);
 				break;
-			case MOT_PAP_MSG_TYPE_CLOSED_LOOP:	//PID
-				lDebug(Info, "Arm closed_loop_setpoint:", msg_rcv->closed_loop_setpoint);
+			case MOT_PAP_TYPE_CLOSED_LOOP:	//PID
+				lDebug(Info, "Arm closed_loop_setpoint: %x", msg_rcv->closed_loop_setpoint);
 				//calcular error de posici�n
 				break;
 			default:
-				lDebug(Info, "STOP arm.c");
+				lDebug(Info, "STOP ARM");
 				break;
 			}
 
@@ -56,12 +56,10 @@ static void arm_task(void* par)
 
 static void arm_supervisor_task()
 {
-	status.dir = MOT_PAP_STATUS_STOP;
-	status.posCmd = 0;
-	status.posAct = 0xEEEE;
-	status.vel = 4;
-	status.cwLimit = 0;
-	status.ccwLimit = 0;
+	arm.dir = MOT_PAP_TYPE_STOP;
+	arm.posCmd = 0xFFEE;
+	arm.posAct = 0xFFEE;
+	arm.freq = 5;
 }
 
 
@@ -74,8 +72,8 @@ void arm_init()
 	lDebug(Debug, "arm.c", "arm_task - TaskCreate"); //Pablo Priority Debug: Borrar
 }
 
-struct mot_pap_status arm_get_status(void)
+struct mot_pap *arm_get_status(void)
 {
 	arm_supervisor_task();
-	return status;
+	return &arm;
 }

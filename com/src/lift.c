@@ -10,17 +10,18 @@
 //#include "relay.h"
 #include "rtu_com_hmi.h"
 #include "debug.h"
+#include "lift.h"
 
 
 
 #define LIFT_TASK_PRIORITY ( configMAX_PRIORITIES - 2 )
 
-static struct lift_status status;
+static struct lift lift;
 static void lift_supervisor_task();
 
 static void lift_task(void *par)
 {
-	lift_t* msg_rcv;
+	struct lift_msg *msg_rcv;
 
 	while (1) {
 
@@ -28,14 +29,14 @@ static void lift_task(void *par)
 
 				switch (msg_rcv->type) {
 				case LIFT_TYPE_UP:
-					lDebug(Info, "lift.c UP");
+					lDebug(Info, "LIFT UP");
 
 					break;
 				case LIFT_TYPE_DOWN:
-					lDebug(Info, "lift.c DOWN");
+					lDebug(Info, "LIFT DOWN");
 					break;
 				default:
-					lDebug(Info, "lift.c STOP");
+					lDebug(Info, "LIFT STOP");
 					break;
 				}
 
@@ -50,9 +51,9 @@ static void lift_task(void *par)
 
 static void lift_supervisor_task()
 {
-	status.type = LIFT_TYPE_STOP;
-	status.upLimit = false;
-	status.downLimit = false;
+	lift.type = LIFT_TYPE_STOP;
+	lift.upLimit = false;
+	lift.downLimit = false;
 }
 
 void lift_init()
@@ -61,8 +62,8 @@ void lift_init()
 	xTaskCreate(lift_task, "lift", configMINIMAL_STACK_SIZE*2, NULL, 4, NULL);
 }
 
-liftstatus_t lift_get_status(void)
+struct lift *lift_get_status(void)
 {
 	lift_supervisor_task();
-	return status;
+	return &lift;
 }

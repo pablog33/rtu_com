@@ -1,5 +1,7 @@
 
 #include <rtu_com_hmi.h>
+#include "mot_pap.h"
+#include "lift.h"
 #include "debug.h"
 
 #include "lwip/opt.h"
@@ -9,6 +11,10 @@
 #include "lwip/sys.h"
 #include "lwip/api.h"
 #include<string.h>
+
+static void prvEmergencyStop(void);
+static void prvNetconnError(err_t err);
+
 /*-----------------------------------------------------------------------------------*/
 static void 
 tcp_thread(void *arg)
@@ -31,17 +37,13 @@ tcp_thread(void *arg)
 	for(;;) /* Bloqueo de hilo, en espera de nueva conexion */
 	{
 		/* Aceptar nueva conexion */
-		if (err_accept = netconn_accept(conn, &newconn) == ERR_OK)
+		if ( ( err_accept = netconn_accept(conn, &newconn) ) == ERR_OK)
 		{
 			struct netbuf *buf;
 			uint16_t uiLenRecvData;
 			HMIData_t *pHMIData;
 			HMICmd_t HMICmd;
 			RTUData_t RTUDataTx;
-			uint16_t res;
-			mpapstatus_t ArmStatus;
-			mpapstatus_t PoleStatus;
-			liftstatus_t LiftStatus;
 			uint16_t iServerStatus = 0x00;
 			uint32_t cycleCount = 0;
 
@@ -68,7 +70,7 @@ tcp_thread(void *arg)
 
 					TaskTriggerMsg(&HMICmd);
 
-					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx, &ArmStatus, &PoleStatus, &LiftStatus);
+					NetValuesToSendFromRTU(iServerStatus, &RTUDataTx);
 
 					lDebug(Debug, "%d", cycleCount);
 
@@ -116,20 +118,25 @@ void stackIp_ThreadInit(void)
  * @return	never
  * @note	Only prints. Variable iServerStatus for hanlde error events, #define ERROR_NETCONN 0x84.
  */
-void prvNetconnError(err_t err)
+static void prvNetconnError(err_t err)
 {
 	switch(err)
 	{
 	case(ERR_TIMEOUT):
 		lDebug(Error, "\n ENET - RecvTimeOut - Se detienen procesos!! \n");
+		break;
 	case(ERR_ARG):
-			lDebug(Error, "\n ENET - Argumento de funcion -netconn_recv- ilegal - Se detienen procesos!! \n");
+		lDebug(Error, "\n ENET - Argumento de funcion -netconn_recv- ilegal - Se detienen procesos!! \n");
+		break;
 	case(ERR_CONN):
-			lDebug(Error, "\n Problemas de conexion - Se detienen procesos!! \n");
+		lDebug(Error, "\n Problemas de conexion - Se detienen procesos!! \n");
+		break;
 	case(ERR_CLSD):
-			lDebug(Error, "\n Closed Connection - Se detienen procesos!! \n");
+		lDebug(Error, "\n Closed Connection - Se detienen procesos!! \n");
+		break;
 	case(ERR_BUF):
 		lDebug(Error, "\n Error al generar Buffer - Se detienen procesos!! \n");
+		break;
 	}
 	return;
 }
@@ -145,24 +152,24 @@ void prvNetconnError(err_t err)
  */
 static void prvEmergencyStop(void)
 {
-	mpap_t* pArmMsg;
-	mpap_t* pPoleMsg;
-	lift_t *pLiftMsg;
+	struct mot_pap_msg *pArmMsg;
+	struct mot_pap_msg *pPoleMsg;
+	struct lift_msg  *pLiftMsg;
 
-	pArmMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t));
-	pArmMsg->type = MOT_PAP_MSG_TYPE_STOP;
-	if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, " Comando enviado a arm.c exitoso!"); }
-				else { lDebug(Info, "Comando NO PUDO ser enviado a arm.c"); }
+	pArmMsg = (struct mot_pap_msg *)pvPortMalloc(sizeof(struct mot_pap_msg));
+	pArmMsg->type = MOT_PAP_TYPE_STOP;
+	if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, " Comando enviado a arm.c exitoso!"); }
+				else { lDebug(Error, "Comando NO PUDO ser enviado a arm.c"); }
 
-	pPoleMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t));
-	pPoleMsg->type = MOT_PAP_MSG_TYPE_STOP;
-	if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a pole.c exitoso!"); }
-				else { lDebug(Info, "Comando NO PUDO ser enviado a pole.c"); }
+	pPoleMsg = (struct mot_pap_msg *)pvPortMalloc(sizeof(struct mot_pap_msg));
+	pPoleMsg->type = MOT_PAP_TYPE_STOP;
+	if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, "Comando enviado a pole.c exitoso!"); }
+				else { lDebug(Error, "Comando NO PUDO ser enviado a pole.c"); }
 
-	pLiftMsg = (lift_t*)pvPortMalloc(sizeof(lift_t));
+	pLiftMsg = (struct lift_msg *)pvPortMalloc(sizeof(struct lift_msg));
 	pLiftMsg->type = LIFT_TYPE_STOP;
-	if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a lift.c exitoso!"); }
-	else { lDebug(Info, "Comando NO PUDO ser enviado a lift.c"); }
+	if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, "Comando enviado a lift.c exitoso!"); }
+	else { lDebug(Error, "Comando NO PUDO ser enviado a lift.c"); }
 
 	return;
 

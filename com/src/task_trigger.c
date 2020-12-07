@@ -23,7 +23,8 @@
 #include "debug.h"
 
 /*	Motor Control	*/
-//#include "mot_pap.h"
+#include "mot_pap.h"
+#include "lift.h"
 
 void TaskTriggerMsg(HMICmd_t* pHMICmd)
 {
@@ -42,9 +43,9 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd)
 	bTypeLiftUp = FALSE;
 	bTypeLiftDown = FALSE;
 
-	mpap_t* pArmMsg;
-	mpap_t* pPoleMsg;
-	lift_t *pLiftMsg;
+	struct mot_pap_msg *pArmMsg;
+	struct mot_pap_msg *pPoleMsg;
+	struct lift_msg *pLiftMsg;
 
 	
 	/*	-- ucActualFlagByte -- Se consituye un byte donde 3 de sus bits -b0 a b2- representan 
@@ -139,10 +140,8 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd)
 				else { bTypeLiftDown = TRUE; }
 				configASSERT(pHMICmd->mode == eLift); /* Deber�a corresponder solo al modo Lift */
 			}
-			else { lDebug(Warn, "RTUcomHMI.c", " Info - prvTaskTriggerMsg:ucMode_EventBits case 0x03"); }
-
+			else { lDebug(Warn, " Info - prvTaskTriggerMsg:ucMode_EventBits case 0x03"); }
 			
-
 			break;
 		}
 
@@ -164,39 +163,39 @@ void TaskTriggerMsg(HMICmd_t* pHMICmd)
 		}
 		
 		if(bSendToArm)
-		{	pArmMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t)); 
-			if (bTypeStop) { pArmMsg->type = MOT_PAP_MSG_TYPE_STOP; }
-			else if (bTypeFreeRunStart) { pArmMsg->type = MOT_PAP_MSG_TYPE_FREE_RUNNING; }
-			else if (bTypeAutoStart) { pArmMsg->type = MOT_PAP_MSG_TYPE_CLOSED_LOOP; }
+		{	pArmMsg = (struct mot_pap_msg*)pvPortMalloc(sizeof(struct mot_pap_msg));
+			if (bTypeStop) { pArmMsg->type = MOT_PAP_TYPE_STOP; }
+			else if (bTypeFreeRunStart) { pArmMsg->type = MOT_PAP_TYPE_FREE_RUNNING; }
+			else if (bTypeAutoStart) { pArmMsg->type = MOT_PAP_TYPE_CLOSED_LOOP; }
 			else { lDebug(Info, " Info bSendToArm"); }
 			pArmMsg->free_run_direction = pHMICmd->freeRunDir;
 			pArmMsg->free_run_speed = pHMICmd->velCmdArm;
 			pArmMsg->closed_loop_setpoint = pHMICmd->posCmdArm;
-			if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, " Comando enviado a arm.c exitoso!"); }
-			else { lDebug(Info, "Comando NO PUDO ser enviado a arm.c"); }
+			if (xQueueSend(arm_queue, &pArmMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, " Comando enviado a arm.c exitoso!"); }
+			else { lDebug(Debug, "Comando NO PUDO ser enviado a arm.c"); }
 		}
 		if (bSendToPole)
 		{
-			pPoleMsg = (mpap_t*)pvPortMalloc(sizeof(mpap_t));
-			if (bTypeStop) { pPoleMsg->type = MOT_PAP_MSG_TYPE_STOP; }
-			else if (bTypeFreeRunStart) { pPoleMsg->type = MOT_PAP_MSG_TYPE_FREE_RUNNING; }
-			else if (bTypeAutoStart) { pPoleMsg->type = MOT_PAP_MSG_TYPE_CLOSED_LOOP; }
+			pPoleMsg = (struct mot_pap_msg*)pvPortMalloc(sizeof(struct mot_pap_msg));
+			if (bTypeStop) { pPoleMsg->type = MOT_PAP_TYPE_STOP; }
+			else if (bTypeFreeRunStart) { pPoleMsg->type = MOT_PAP_TYPE_FREE_RUNNING; }
+			else if (bTypeAutoStart) { pPoleMsg->type = MOT_PAP_TYPE_CLOSED_LOOP; }
 			else { lDebug(Info, "Info bSendToPole"); }
 			pPoleMsg->free_run_direction = pHMICmd->freeRunDir;
 			pPoleMsg->free_run_speed = pHMICmd->velCmdPole;
 			pPoleMsg->closed_loop_setpoint = pHMICmd->posCmdPole;
-			if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a pole.c exitoso!"); }
-			else { lDebug(Info, "Comando NO PUDO ser enviado a pole.c"); }
+			if (xQueueSend(pole_queue, &pPoleMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, "Comando enviado a pole.c exitoso!"); }
+			else { lDebug(Debug, "Comando NO PUDO ser enviado a pole.c"); }
 		}
 		if(bSendToLift)
 		{
-			pLiftMsg = (lift_t*)pvPortMalloc(sizeof(lift_t));
+			pLiftMsg = (struct lift_msg*)pvPortMalloc(sizeof(struct lift_msg));
 			if (bTypeStop) { pLiftMsg->type = LIFT_TYPE_STOP; }
 			else if (bTypeLiftUp) { pLiftMsg->type = LIFT_TYPE_UP; }
 			else if (bTypeLiftDown) { pLiftMsg->type = LIFT_TYPE_DOWN; }
 			else { lDebug(Info, "Info bSendToLift"); }
-			if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Info, "Comando enviado a lift.c exitoso!"); }
-			else { lDebug(Info, "Comando NO PUDO ser enviado a lift.c"); }
+			if (xQueueSend(lift_queue, &pLiftMsg, portMAX_DELAY) == pdPASS) { lDebug(Debug, "Comando enviado a lift.c exitoso!"); }
+			else { lDebug(Debug, "Comando NO PUDO ser enviado a lift.c"); }
 		}
 		
 

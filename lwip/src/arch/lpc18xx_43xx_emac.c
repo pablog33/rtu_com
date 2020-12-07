@@ -820,10 +820,10 @@ void ETH_IRQHandler(void)
 	uint32_t ints;
 
 	/* Get pending interrupts */
-	ints = LPC_ETHERNET->DMA_STAT;
+	ints = LPC_ETHERNET->DMA_STAT; /* GPa LPC43xx UM10503 Table 631 - TI(0)/RI(6): Tx/Rx Int */
 
 	/* RX group interrupt(s) */
-	if (ints & (DMA_ST_RI | DMA_ST_OVF | DMA_ST_RU)) {
+	if (ints & (DMA_ST_RI | DMA_ST_OVF | DMA_ST_RU)) { /* RU: Receive Buffer Unavailable */
 		/* Give semaphore to wakeup RX receive task. Note the FreeRTOS
 		   method is used instead of the LWIP arch method. */
 		xSemaphoreGiveFromISR(lpc_enetdata.RxSem, &xRecTaskWoken);
